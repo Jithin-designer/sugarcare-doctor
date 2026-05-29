@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SugarCARE Consult · Print Preview v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple: #4A2FA0;
+  --purple-tint: #E4E0F4;
+  --orange: #E86A1A;
+  --orange-tint: #FCE4D4;
+  --paper: #FFFFFF;
+  --ink: #1A0E50;
+  --muted: #5C5478;
+  --card: #FFFFFF;
+  --line: #D9D0BC;
+  --soft: #F3F3F3;
+  --forest: #1C4A3A;
+  --leaf: #6E9B5E;
+  --alert: #C0492F;
+  --alert-bg: #FBEEEA;
+  --alert-border: #E6B3A6;
+  --warn-bg: #FAEEDA;
+  --warn-border: #FAC775;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: #f0f0f0;
+  color: var(--ink);
+  padding: 32px 24px;
+}
+
+.ml { font-family: 'Noto Sans Malayalam', sans-serif; }
+
+/* ── PAGE SHELL ── */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  background: #FFFFFF;
+  padding: 14mm 15mm 22mm;
+  margin: 0 auto 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.10);
+  position: relative;
+  page-break-after: always;
+}
+
+.page:last-child { page-break-after: auto; }
+
+/* ── SHARED HEADER ── */
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2.5px solid var(--orange);
+  padding-bottom: 11px;
+  margin-bottom: 20px;
+}
+
+.brand-logo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--purple);
+  line-height: 1;
+}
+.brand-logo span { color: var(--orange); }
+
+.brand-tagline {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.doc-meta {
+  text-align: right;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.doc-meta b { color: var(--ink); }
+
+/* ── PAGE LABEL ── */
+.page-label {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--purple);
+  letter-spacing: -.3px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.page-label::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: var(--purple-tint);
+}
+
+/* ── SECTION BLOCK ── */
+.sec { margin-bottom: 20px; }
+
+.sec-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sec-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ── CLINICAL PICTURE ── */
+.clinical-picture {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 3.5px solid var(--purple);
+  border-radius: 0 10px 10px 0;
+  padding: 13px 16px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ── MISSING DATA ── */
+.missing-bar {
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.missing-bar .warn-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.missing-bar b { color: #854F0B; }
+
+/* ── RED FLAGS ── */
+.flags-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.flag-box {
+  background: var(--alert-bg);
+  border: 1px solid var(--alert-border);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #4a4536;
+}
+
+.flag-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--alert);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── DEVIATIONS ── */
+.deviations {
+  background: #F3F3F3;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 11px;
+  line-height: 1.9;
+  columns: 2;
+  column-gap: 20px;
+}
+
+.deviations li {
+  list-style: none;
+  padding-left: 13px;
+  position: relative;
+  break-inside: avoid;
+}
+
+.deviations li::before {
+  content: '•';
+  color: var(--orange);
+  font-weight: 700;
+  position: absolute;
+  left: 0;
+}
+
+/* ── RX TABLE ── */
+.rx-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin: 10px 0;
+}
+
+.rx-table th {
+  background: var(--purple);
+  color: #fff;
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.rx-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #F3F3F3;
+  vertical-align: top;
+  line-height: 1.45;
+}
+
+.rx-table tr:last-child td { border-bottom: none; }
+.rx-table tr:nth-child(even) td { background: #F8F8F8; }
+
+.drug-name { font-weight: 700; color: var(--ink); }
+.drug-brand { font-weight: 400; color: var(--muted); font-size: 10px; }
+.drug-dose { color: var(--purple); font-weight: 600; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 9.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-jan { background: #EAF3DE; color: #3B6D11; }
+.badge-generic { background: var(--purple-tint); color: var(--purple); }
+.badge-brand { background: var(--warn-bg); color: #854F0B; }
+
+/* ── SPECIAL INSTRUCTIONS ── */
+.special-inst {
+  background: var(--card);
+  border: 1px dashed var(--leaf);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.55;
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* ── MONITORING GRID ── */
+.monitoring {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.mon-item {
+  background: #F3F3F3;
+  border-radius: 7px;
+  padding: 7px 8px;
+  font-size: 10px;
+  color: var(--ink);
+  line-height: 1.4;
+  text-align: center;
+}
+
+/* ─────────────────────────────────────────
+   PAGE 3 — CARE CARD (nutrition-app style)
+   ───────────────────────────────────────── */
+
+/* Pure white + cream background for care card */
+.page-carecard {
+  background: #FFFFFF;
+}
+
+.care-header {
+  text-align: center;
+  padding-bottom: 14px;
+  border-bottom: 2.5px solid var(--orange);
+  margin-bottom: 0;
+}
+
+.care-logo {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 26px;
+  color: var(--purple);
+  line-height: 1;
+}
+.care-logo span { color: var(--orange); }
+
+.care-tagline {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Patient info strip */
+.patient-strip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--purple);
+  border-radius: 12px;
+  margin: 14px 0;
+  color: #fff;
+}
+
+.ps-name { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 15px; }
+.ps-meta { font-size: 11px; opacity: .8; margin-top: 2px; }
+.ps-right { text-align: right; font-size: 11px; opacity: .85; line-height: 1.6; }
+
+/* Clinical summary bar */
+.summary-bar {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 3.5px solid var(--purple);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 14px;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* Section heading — nutrition app style */
+.cc-sec-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.cc-num {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.cc-num-ml {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* ── MEDICINES — compact pill cards ── */
+.med-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.med-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.med-card .med-name {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.med-card .med-dose {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--purple);
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+.med-card .med-when {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.med-warn {
+  background: var(--orange-tint);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 10.5px;
+  color: #7a3010;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+/* ── NUTRITION — big numbers like app ── */
+.nutrition-section {
+  margin-bottom: 16px;
+}
+
+.kcal-hero {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.kcal-donut { flex-shrink: 0; position: relative; }
+
+.kcal-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.kcal-num {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--orange);
+  line-height: 1;
+}
+
+.kcal-unit {
+  font-size: 8px;
+  color: var(--muted);
+  display: block;
+}
+
+.macro-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  flex: 1;
+}
+
+.macro-card {
+  background: #F3F3F3;
+  border-radius: 10px;
+  padding: 9px 10px;
+  text-align: center;
+}
+
+.macro-card .m-label {
+  font-size: 9.5px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+
+.macro-card .m-value {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.macro-card .m-sub {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Kerala foods */
+.kerala-list {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.kerala-list .kl-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 7px;
+}
+
+.kerala-list ul {
+  list-style: none;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.kerala-list ul li {
+  padding: 5px 0;
+  border-bottom: 1px solid #F3F3F3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kerala-list ul li:last-child { border-bottom: none; }
+
+.kerala-list ul li::before {
+  content: '→';
+  color: var(--orange);
+  font-weight: 700;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.hydration-note {
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--forest);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 2-COL LOWER SECTION ── */
+.lower-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.lower-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+/* Exercise */
+.exercise-content {
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.exercise-big {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--purple);
+  line-height: 1;
+  margin: 8px 0 4px;
+}
+
+.exercise-big span {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.exercise-sub {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* Goals */
+.goal-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.goal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #F3F3F3;
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+
+.goal-row .g-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.goal-row .g-value {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--purple);
+}
+
+.goal-row .g-ml {
+  font-family: 'Noto Sans Malayalam', sans-serif;
+  font-size: 9.5px;
+  color: var(--orange);
+}
+
+/* Next visit */
+.next-visit-bar {
+  background: var(--purple);
+  color: #fff;
+  border-radius: 10px;
+  padding: 9px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.nv-type { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 13px; }
+.nv-date { color: #FFD580; font-weight: 700; font-size: 13px; }
+.nv-note { font-size: 10px; opacity: .75; }
+
+/* ── DAILY LOG TRACKER ── */
+.tracker {
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  padding: 11px 14px;
+}
+
+.tracker-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 9px;
+}
+
+.tracker-head b {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 12px;
+}
+
+.tracker-head .bring {
+  color: var(--orange);
+  font-weight: 600;
+  font-size: 10px;
+}
+
+.log-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+
+.log-cell {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 8px 4px 6px;
+  text-align: center;
+}
+
+.day-label {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 10px;
+  display: block;
+  margin-bottom: 14px;
+}
+
+.write-line {
+  border-bottom: 1px solid var(--line);
+  height: 1px;
+  margin: 0 6px;
+}
+
+.log-hint {
+  text-align: center;
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 7px;
+}
+
+/* ── FOOTER ── */
+.doc-footer {
+  position: absolute;
+  bottom: 10mm;
+  left: 15mm;
+  right: 15mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8.5px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 7px;
+}
+
+.doc-footer b { color: var(--ink); }
+.doc-footer .disc { font-style: italic; text-align: right; max-width: 55%; }
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; padding: 0; }
+  .page { box-shadow: none; width: 100%; min-height: auto; margin: 0; }
+  .no-print { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  @page { size: A4 portrait; margin: 0; }
+}
+
+/* ── PREVIEW BAR ── */
+.preview-bar {
+  width: 210mm;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  color: #5a5040;
+}
+
+.preview-bar button {
+  background: var(--purple);
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+}
+</style>
+</head>
+<body>
+
+<div class="preview-bar no-print">
+  <span>📄 3-page print preview · A4 · v2</span>
+  <button onclick="window.print()">🖨 Print / Save PDF</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     PAGE 1 — CLINICAL SUMMARY + CONTEXT
+     ══════════════════════════════════════ -->
+<div class="page">
+
+  <div class="doc-header">
+    <div>
+      <div class="brand-logo">Sugar<span>CARE</span></div>
+      <div class="brand-tagline ml">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div>
+    </div>
+    <div class="doc-meta">
+      <div><b>Internal Clinical Record</b></div>
+      <div>Ashwin · SugarCARE Kondotty</div>
+      <div>64M · New patient · 29 May 2026</div>
+    </div>
+  </div>
+
+  <div class="page-label">Clinical Summary &amp; Context</div>
+
+  <!-- CLINICAL PICTURE -->
+  <div class="sec">
+    <div class="sec-title">Clinical Picture</div>
+    <div class="clinical-picture">
+      64M, new T2DM (HbA1c 7.8%), dyslipidaemia, strong family history of diabetes. Normal BMI (23.1) but likely TOFI phenotype. Classical symptoms: fatigue, polydipsia. Initial therapy — glimepiride + linagliptin + SGLT2i — showing good early response (FBS 135→117 mg/dL, PPBS 243→152 mg/dL). BP rising 110/70→130/80, warrants monitoring.
+    </div>
+  </div>
+
+  <!-- MISSING DATA -->
+  <div class="sec">
+    <div class="sec-title">Missing Data — Collect at Next Visit</div>
+    <div class="missing-bar">
+      <span class="warn-icon">⚠</span>
+      <div><b>Not yet collected:</b>&nbsp; LFT &nbsp;·&nbsp; RFT / eGFR &nbsp;·&nbsp; Lipid panel (LDL / HDL / TG) &nbsp;·&nbsp; Urine ACR &nbsp;·&nbsp; ECG &nbsp;·&nbsp; Retinopathy screening &nbsp;·&nbsp; Foot exam &nbsp;·&nbsp; Medication brands & adherence &nbsp;·&nbsp; Alcohol / smoking status &nbsp;·&nbsp; AYUSH / herbal use</div>
+    </div>
+  </div>
+
+  <!-- RED FLAGS -->
+  <div class="sec">
+    <div class="sec-title">🚨 Red Flags</div>
+    <div class="flags-grid">
+      <div class="flag-box">
+        <div class="flag-label">⚠ Flag</div>
+        BP trending upward (130/80) — pre-HTN threshold reached. Start home BP monitoring.
+      </div>
+      <div class="flag-box">
+        <div class="flag-label">⚠ Flag</div>
+        Glimepiride 2mg BD → hypo risk if meals irregular. Dose reduced to 1mg OD.
+      </div>
+      <div class="flag-box">
+        <div class="flag-label">⚠ Flag</div>
+        Dapagliflozin needs baseline RFT / eGFR before continuing — critical gap.
+      </div>
+      <div class="flag-box">
+        <div class="flag-label">⚠ Flag</div>
+        Persistent fatigue — rule out anaemia, hypothyroid, cardiac cause.
+      </div>
+    </div>
+  </div>
+
+  <!-- DEVIATIONS -->
+  <div class="sec">
+    <div class="sec-title">Deviations from Target</div>
+    <ul class="deviations">
+      <li>HbA1c 7.8% &nbsp;(target &lt;7%)</li>
+      <li>FBS 135→117 mg/dL &nbsp;(target &lt;110)</li>
+      <li>PPBS 243→152 mg/dL &nbsp;(target &lt;140)</li>
+      <li>BP rising 110/70 → 130/80</li>
+      <li>TC 151 — LDL/HDL breakdown needed</li>
+      <li>Caloric intake 10,081 kcal/day — data error likely</li>
+    </ul>
+  </div>
+
+  <div class="doc-footer">
+    <div><b>SugarCARE Clinics</b> · HomoRx Healthtech Private Limited · 799 4884 799</div>
+    <div class="disc">Internal clinical record — not for patient use. Page 1 of 3.</div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PAGE 2 — PRESCRIPTION
+     ══════════════════════════════════════ -->
+<div class="page">
+
+  <div class="doc-header">
+    <div>
+      <div class="brand-logo">Sugar<span>CARE</span></div>
+      <div class="brand-tagline ml">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div>
+    </div>
+    <div class="doc-meta">
+      <div>Ashwin · SugarCARE Kondotty</div>
+      <div>64M · New patient · 29 May 2026</div>
+      <div><b>Reg No:</b> ___________</div>
+    </div>
+  </div>
+
+  <div class="page-label">℞ Prescription</div>
+
+  <table class="rx-table">
+    <thead>
+      <tr>
+        <th style="width:26%">Medicine</th>
+        <th style="width:11%">Dose</th>
+        <th style="width:22%">When</th>
+        <th>Instructions</th>
+        <th style="width:11%">Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="drug-name">Glimepiride</div><div class="drug-brand">Amaryl</div></td>
+        <td class="drug-dose">1mg</td>
+        <td>Once daily before breakfast</td>
+        <td>Reduced from 2mg BD → 1mg OD. Monitor for hypoglycaemia. Take with first meal.</td>
+        <td><span class="badge badge-generic">Generic</span></td>
+      </tr>
+      <tr>
+        <td><div class="drug-name">Linagliptin</div><div class="drug-brand">Trajenta</div></td>
+        <td class="drug-dose">5mg</td>
+        <td>Once daily</td>
+        <td>Continue. No dose adjustment needed.</td>
+        <td><span class="badge badge-generic">Generic</span></td>
+      </tr>
+      <tr>
+        <td><div class="drug-name">Dapagliflozin</div><div class="drug-brand">Forxiga</div></td>
+        <td class="drug-dose">10mg</td>
+        <td>Once daily morning</td>
+        <td>Adequate hydration essential. Monitor GU symptoms. Confirm eGFR &gt;45 before next dose.</td>
+        <td><span class="badge badge-generic">Generic</span></td>
+      </tr>
+      <tr>
+        <td><div class="drug-name">Atorvastatin</div><div class="drug-brand">Atorva</div></td>
+        <td class="drug-dose">10mg</td>
+        <td>Once daily at night</td>
+        <td>Added for dyslipidaemia. Target LDL &lt;70 mg/dL. Monitor LFT at Q1.</td>
+        <td><span class="badge badge-jan">JanAushadhi</span></td>
+      </tr>
+      <tr>
+        <td><div class="drug-name">Aspirin</div><div class="drug-brand">Ecosprin</div></td>
+        <td class="drug-dose">75mg</td>
+        <td>Once daily after dinner</td>
+        <td>Primary prevention — age &gt;60 + T2DM + dyslipidaemia. Take with food.</td>
+        <td><span class="badge badge-jan">JanAushadhi</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="special-inst">
+    <span style="color:var(--leaf);font-size:16px;">✓</span>
+    <span><b>Special instructions:</b> Confirm RFT/eGFR urgently before next dapagliflozin dose — if eGFR &lt;45, switch to metformin. Home BP monitoring twice weekly. Report immediately: dizziness, palpitations, or glucose &lt;70 mg/dL.</span>
+  </div>
+
+  <div class="sec" style="margin-top:18px;">
+    <div class="sec-title">Monitoring Parameters</div>
+    <div class="monitoring">
+      <div class="mon-item">FBS/PPBS<br>weekly</div>
+      <div class="mon-item">BP home<br>2× weekly</div>
+      <div class="mon-item">Weight<br>weekly</div>
+      <div class="mon-item">RFT/eGFR<br>urgent</div>
+      <div class="mon-item">Lipid panel<br>LDL target</div>
+      <div class="mon-item">LFT<br>baseline</div>
+      <div class="mon-item">HbA1c<br>3 months</div>
+      <div class="mon-item">Hypo<br>episodes</div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+    <div style="text-align:center;font-size:10px;color:var(--muted);">
+      <div style="border-top:1px solid var(--ink);width:180px;padding-top:5px;">Signature of Prescriber</div>
+      <div style="margin-top:3px;">Date: 29 / 05 / 2026</div>
+    </div>
+  </div>
+
+  <div class="doc-footer">
+    <div><b>SugarCARE Clinics</b> · HomoRx Healthtech Pvt Ltd · 799 4884 799</div>
+    <div class="disc">For use as prescribed. Verify all drug data with CIMS India before dispensing. Page 2 of 3.</div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════
+     PAGE 3 — PATIENT CARE CARD
+     Nutrition-app aesthetic
+     ══════════════════════════════════════ -->
+<div class="page page-carecard">
+
+  <div class="care-header">
+    <div class="care-logo">Sugar<span>CARE</span></div>
+    <div class="care-tagline ml">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div>
+  </div>
+
+  <div class="patient-strip">
+    <div>
+      <div class="ps-name">Patient</div>
+      <div class="ps-meta">New patient · 64M</div>
+    </div>
+    <div class="ps-right">
+      29 May 2026<br>
+      Ashwin · SugarCARE Kondotty
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    64M, T2DM (HbA1c 7.8%), dyslipidaemia. Early treatment response. BP rising — needs monitoring.
+  </div>
+
+  <!-- 1. MEDICINES -->
+  <div class="cc-sec-title">
+    <div class="cc-num">1</div>
+    Your Medicines
+    <span class="cc-num-ml ml">നിങ്ങളുടെ മരുന്നുകൾ</span>
+  </div>
+
+  <div class="med-grid">
+    <div class="med-card">
+      <div class="med-name">Glimepiride <span style="color:var(--muted);font-weight:400;font-size:10px;">(Amaryl)</span></div>
+      <div class="med-dose">1mg</div>
+      <div class="med-when">Before breakfast</div>
+    </div>
+    <div class="med-card">
+      <div class="med-name">Linagliptin <span style="color:var(--muted);font-weight:400;font-size:10px;">(Trajenta)</span></div>
+      <div class="med-dose">5mg</div>
+      <div class="med-when">Once daily</div>
+    </div>
+    <div class="med-card">
+      <div class="med-name">Dapagliflozin <span style="color:var(--muted);font-weight:400;font-size:10px;">(Forxiga)</span></div>
+      <div class="med-dose">10mg</div>
+      <div class="med-when">Morning · drink plenty of water</div>
+    </div>
+    <div class="med-card">
+      <div class="med-name">Atorvastatin + Aspirin</div>
+      <div class="med-dose">10mg + 75mg</div>
+      <div class="med-when">At night / after dinner</div>
+    </div>
+  </div>
+
+  <div class="med-warn">⚠ Never skip meals — glimepiride can cause low blood sugar · <span class="ml">ഭക്ഷണം ഒഴിവാക്കരുത്</span></div>
+
+  <!-- 2. FOOD PLAN — nutrition app style -->
+  <div class="cc-sec-title">
+    <div class="cc-num">2</div>
+    Your Food Plan
+    <span class="cc-num-ml ml">ഭക്ഷണ ക്രമം</span>
+  </div>
+
+  <div class="nutrition-section">
+    <div class="kcal-hero">
+      <!-- Donut chart -->
+      <div class="kcal-donut">
+        <svg viewBox="0 0 36 36" width="88" height="88">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F3F3" stroke-width="4.5"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="4.5"
+            stroke-dasharray="50 50" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="4.5"
+            stroke-dasharray="20 80" stroke-dashoffset="-50" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="4.5"
+            stroke-dasharray="30 70" stroke-dashoffset="-70" transform="rotate(-90 18 18)"/>
+          <circle cx="18" cy="18" r="10" fill="#FAFAF8"/>
+        </svg>
+        <div class="kcal-center">
+          <div class="kcal-num">1540</div>
+          <span class="kcal-unit">kcal</span>
+        </div>
+      </div>
+
+      <!-- Macro cards -->
+      <div class="macro-cards">
+        <div class="macro-card">
+          <div class="m-label">Carbs</div>
+          <div class="m-value" style="color:#6E9B5E;">50%</div>
+          <div class="m-sub">193g/day</div>
+        </div>
+        <div class="macro-card">
+          <div class="m-label">Protein</div>
+          <div class="m-value" style="color:var(--orange);">20%</div>
+          <div class="m-sub">77g/day</div>
+        </div>
+        <div class="macro-card">
+          <div class="m-label">Fat</div>
+          <div class="m-value" style="color:var(--purple);">30%</div>
+          <div class="m-sub">51g/day</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kerala-list">
+      <div class="kl-title">Kerala Food Guide</div>
+      <ul>
+        <li>Replace white rice with red rice (Matta rice) or brown rice</li>
+        <li>Fish 3–4× week (sardines, mackerel) — limit fried</li>
+        <li>Coconut in moderation — thin milk in curries only</li>
+        <li>Banana (nendran) — small piece only if BP controlled</li>
+      </ul>
+    </div>
+    <div class="hydration-note">💧 2.5–3 litres water daily <span style="color:var(--muted);font-size:10px;">(important with dapagliflozin)</span></div>
+  </div>
+
+  <!-- 3 + 4 — EXERCISE + GOALS side by side -->
+  <div class="lower-grid">
+
+    <div class="lower-card">
+      <div class="cc-sec-title" style="margin-bottom:8px;">
+        <div class="cc-num">3</div>
+        Exercise
+        <span class="cc-num-ml ml">വ്യായാമം</span>
+      </div>
+      <div class="exercise-content">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Daily target</div>
+        <div class="exercise-big">30 <span>min/day</span></div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;">Brisk walking · 5 days/week</div>
+        <div class="exercise-sub">Walk after meals, not on empty stomach.<br>Avoid if glucose &lt;80 mg/dL.<br>Stop if chest pain or dizziness.</div>
+      </div>
+    </div>
+
+    <div class="lower-card">
+      <div class="cc-sec-title" style="margin-bottom:8px;">
+        <div class="cc-num">4</div>
+        Your Goals
+        <span class="cc-num-ml ml">ലക്ഷ്യം</span>
+      </div>
+      <div class="goal-cards">
+        <div class="goal-row">
+          <div>
+            <div class="g-label">HbA1c</div>
+            <div class="g-ml ml">ഷുഗർ ടാർഗറ്റ്</div>
+          </div>
+          <div class="g-value">&lt;7%</div>
+        </div>
+        <div class="goal-row">
+          <div>
+            <div class="g-label">Weight</div>
+            <div class="g-ml ml">ഭാരം</div>
+          </div>
+          <div class="g-value">61 kg</div>
+        </div>
+        <div class="goal-row">
+          <div>
+            <div class="g-label">Blood Pressure</div>
+            <div class="g-ml ml">രക്തസമ്മർദ്ദം</div>
+          </div>
+          <div class="g-value">&lt;130/80</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NEXT VISIT -->
+  <div class="next-visit-bar">
+    <div>
+      <div style="font-size:10px;opacity:.75;margin-bottom:2px;">Next visit</div>
+      <div class="nv-type">Titration visit</div>
+    </div>
+    <div class="nv-date">2026-06-26</div>
+    <div class="nv-note">Bring: FBS · PPBS · RFT reports</div>
+  </div>
+
+  <!-- DAILY LOG TRACKER -->
+  <div class="tracker">
+    <div class="tracker-head">
+      <b>Daily log — write your fasting sugar reading</b>
+      <span class="bring">★ Bring this card next visit</span>
+    </div>
+    <div class="log-row">
+      <div class="log-cell"><span class="day-label">Day 1</span><div class="write-line"></div></div>
+      <div class="log-cell"><span class="day-label">Day 2</span><div class="write-line"></div></div>
+      <div class="log-cell"><span class="day-label">Day 3</span><div class="write-line"></div></div>
+      <div class="log-cell"><span class="day-label">Day 5</span><div class="write-line"></div></div>
+      <div class="log-cell"><span class="day-label">Day 7</span><div class="write-line"></div></div>
+    </div>
+    <div class="log-hint ml">ഷുഗർ വായന ഓരോ ദിവസവും ഇവിടെ എഴുതുക · ഈ കാർഡ് അടുത്ത സന്ദർശനത്തിൽ കൊണ്ടുവരുക</div>
+  </div>
+
+  <div class="doc-footer">
+    <div><b>SugarCARE Clinics</b> · 799 4884 799 · Kondotty</div>
+    <div class="disc">Clinical decision support only. Prescriber judgement is final. Page 3 of 3.</div>
+  </div>
+
+</div>
+
+</body>
+</html>
