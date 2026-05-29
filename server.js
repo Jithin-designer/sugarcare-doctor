@@ -1,12 +1,100 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
+import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+/* ============ Access password gate ============ */
+// The cookie stores a SHA-256 token of the password, never the password itself.
+const ACCESS_PASSWORD = process.env.ACCESS_PASSWORD || '';
+const AUTH_TOKEN = ACCESS_PASSWORD
+  ? crypto.createHash('sha256').update(ACCESS_PASSWORD).digest('hex')
+  : '';
+if (!ACCESS_PASSWORD) console.warn('[auth] ACCESS_PASSWORD not set — login gate is DISABLED');
+
+// Constant-time comparison to avoid leaking length/timing info.
+function safeEqual(a, b) {
+  const ab = Buffer.from(String(a));
+  const bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+function isAuthed(req) {
+  const c = req.cookies && req.cookies.sc_auth;
+  return !!(c && AUTH_TOKEN && safeEqual(c, AUTH_TOKEN));
+}
+
+function loginPage(error) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SugarCARE · Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,800&family=Outfit:wght@400;500;600&family=Noto+Sans+Malayalam:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Outfit',system-ui,sans-serif;background:#FFFFFF;color:#1A1A2E;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+  .card{width:100%;max-width:360px;background:#fff;border:1px solid #E2DFEB;border-radius:16px;box-shadow:0 8px 30px rgba(74,47,160,0.10);padding:2.25rem 2rem;text-align:center;}
+  .logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:2rem;line-height:1;color:#4A2FA0;}
+  .logo span{color:#E86A1A;}
+  .tagline{font-family:'Noto Sans Malayalam',sans-serif;font-size:0.85rem;color:#64648C;margin-top:0.5rem;}
+  form{margin-top:1.75rem;}
+  input[type=password]{width:100%;padding:0.7rem 0.85rem;border:1px solid #E2DFEB;border-radius:10px;font-size:1rem;font-family:inherit;color:#1A1A2E;}
+  input[type=password]:focus{outline:none;border-color:#4A2FA0;}
+  button{width:100%;margin-top:0.85rem;padding:0.75rem;background:#4A2FA0;color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:600;font-family:inherit;cursor:pointer;}
+  button:hover{opacity:0.92;}
+  .error{margin-top:0.85rem;color:#C62828;font-size:0.85rem;font-weight:600;}
+  .foot{margin-top:1.5rem;font-size:0.7rem;color:#9898B8;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Sugar<span>CARE</span></div>
+    <div class="tagline">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div>
+    <form method="POST" action="/login">
+      <input type="password" name="password" placeholder="Enter access password" autocomplete="current-password" autofocus required>
+      <button type="submit">Enter</button>
+      ${error ? '<div class="error">Incorrect password. Please try again.</div>' : ''}
+    </form>
+    <div class="foot">SugarCARE · HomoRx Healthtech · Authorised access only</div>
+  </div>
+</body>
+</html>`;
+}
+
+// Public login routes (defined before the gate so they stay reachable).
+app.get('/login', (req, res) => {
+  if (isAuthed(req)) return res.redirect('/');
+  res.status(200).send(loginPage(false));
+});
+app.post('/login', (req, res) => {
+  const pw = (req.body && req.body.password) || '';
+  if (AUTH_TOKEN && safeEqual(pw, ACCESS_PASSWORD)) {
+    res.cookie('sc_auth', AUTH_TOKEN, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'lax' });
+    return res.redirect('/');
+  }
+  res.status(401).send(loginPage(true));
+});
+
+// Gate everything else — pages serve the login screen, APIs return 401.
+app.use((req, res, next) => {
+  if (!AUTH_TOKEN) return next();            // password not configured -> gate disabled
+  if (isAuthed(req)) return next();
+  if (req.path.startsWith('/api/')) return res.status(401).json({ error: 'Unauthorized' });
+  res.status(401).send(loginPage(false));
+});
+
 app.use(express.static(__dirname));
 
 // Audio uploads held in memory, then re-sent to Groq. 25MB matches Groq's file limit.
