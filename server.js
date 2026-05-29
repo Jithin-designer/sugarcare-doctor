@@ -159,9 +159,65 @@ app.post('/api/analyse', async (req, res) => {
     selectedOutputs.forEach(o => (SECTION_FOR_OUTPUT[o] || []).forEach(s => set.add(s)));
     if (set.size) wantSections = ALL_SECTIONS.filter(s => set.has(s));
   }
-  const sectionInstruction = wantSections.length === ALL_SECTIONS.length
-    ? ''
-    : `\n\nGenerate ONLY these top-level JSON sections: ${wantSections.join(', ')}. Skip all other sections completely — do not include them in the JSON at all. This reduces output size, so be even more concise.`;
+
+  // Build the JSON schema dynamically — only include sections the doctor requested.
+  // This is in the system prompt so Claude treats it as the contract, not a suggestion.
+  const SECTION_SCHEMAS = {
+    context: `  "context": {
+    "summary": "1-2 sentence clinical picture",
+    "missingData": ["data points not collected that are needed"],
+    "deviations": ["abnormal values — specific"],
+    "internalIssues": ["comorbidities, drug interactions, compliance risks"],
+    "redFlags": ["symptoms or values requiring urgent attention"]
+  }`,
+    idealPrescription: `  "idealPrescription": {
+    "medications": [
+      {
+        "drug": "Generic name (Brand)",
+        "dose": "e.g. 500mg",
+        "frequency": "e.g. Once daily with dinner",
+        "duration": "e.g. 3 months",
+        "instructions": "e.g. With food. Monitor GI.",
+        "costTier": "JanAushadhi / Generic / Brand",
+        "rationale": "a few words only"
+      }
+    ],
+    "specialInstructions": "",
+    "monitoringParameters": ["what to check at next visit"]
+  }`,
+    idealDiet: `  "idealDiet": {
+    "targetCalories": 0,
+    "macros": { "carbsPercent": 0, "proteinPercent": 0, "fatPercent": 0 },
+    "mealPlan": ["Breakfast: ...", "Lunch: ...", "Dinner: ...", "Snacks: ..."],
+    "keralaMeals": ["Kerala-specific food swaps"],
+    "avoid": ["foods to avoid with brief reason"],
+    "hydration": "water intake target"
+  }`,
+    idealExercise: `  "idealExercise": {
+    "type": "e.g. Brisk walking",
+    "minutesPerDay": 0,
+    "daysPerWeek": 0,
+    "weeklyMinutes": 0,
+    "progression": "brief — how to build over 3 months",
+    "restrictions": ["activities to avoid given comorbidities"]
+  }`,
+    idealFollowUpPlan: `  "idealFollowUpPlan": {
+    "nextVisitType": "Titration / Q1 / Q2 / Q3 / Annual",
+    "nextVisitDate": "YYYY-MM-DD",
+    "nextVisitFocus": ["what to assess at next visit"],
+    "targetsByNextVisit": { "hba1c": "", "weight": "", "bp": "", "other": [] },
+    "visitSequence": [
+      {"visit": "Index", "done": true},
+      {"visit": "Titration (1-2 weeks)", "done": false},
+      {"visit": "Q1 (3 months)", "done": false},
+      {"visit": "Q2 (6 months)", "done": false},
+      {"visit": "Q3 (9 months)", "done": false},
+      {"visit": "Annual surveillance", "done": false}
+    ],
+    "warningSignsToReturn": ["symptoms requiring immediate return"]
+  }`
+  };
+  const schemaBody = wantSections.map(s => SECTION_SCHEMAS[s]).join(',\n');
 
   const system = `You are a clinical documentation assistant for SugarCARE, a specialist diabetes management clinic in Malappuram, Kerala, India, run by HomoRx Healthtech. You assist doctors by structuring consultation data into clinical outputs.
 
@@ -175,80 +231,17 @@ CLINICAL CONTEXT:
 - CDSCO prescriber hierarchy: flag any restricted drugs (e.g. GLP-1 agonists require specialist prescriber).
 - Never make final prescribing decisions — always frame as draft for doctor review and approval.
 
-BREVITY RULES — the entire response MUST fit well within 2000 output tokens. Be extremely concise:
+BREVITY RULES — be extremely concise:
 - Every string field: terse, telegraphic, bullet-style. NO full prose sentences.
 - Max 2 short sentences per field; most fields should be a single fragment.
 - Array fields: max 3-4 short items each. Pick only the most clinically important.
-- "summary": 1-2 short sentences only.
-- "rationale": a few words, not a sentence (e.g. "first-line, renal-safe"). NO rationale paragraphs.
+- "rationale": a few words only (e.g. "first-line, renal-safe").
 - "instructions": short directive only (e.g. "With dinner, monitor GI").
-- mealPlan/keralaMeals/avoid: brief items, no explanations beyond a few words.
 - Omit filler, hedging, and restating the schema. Prioritise completing valid JSON over detail.
 
-OUTPUT FORMAT — respond in valid JSON only, no markdown, no preamble:
+OUTPUT FORMAT — respond in valid JSON only, no markdown, no preamble. Generate ONLY these sections and no others:
 {
-  "context": {
-    "summary": "2-3 sentence plain English clinical picture of this patient",
-    "missingData": ["list of data points not collected that are needed"],
-    "deviations": ["what is abnormal or concerning — specific values"],
-    "internalIssues": ["comorbidities, drug interactions, compliance risks, psychosocial barriers"],
-    "redFlags": ["symptoms or values requiring urgent attention"]
-  },
-  "idealPrescription": {
-    "medications": [
-      {
-        "drug": "Generic name (Brand)",
-        "dose": "e.g. 500mg",
-        "frequency": "e.g. Once daily with dinner",
-        "duration": "e.g. 3 months",
-        "instructions": "e.g. Take with food. Monitor for GI side effects.",
-        "costTier": "JanAushadhi / Generic / Brand",
-        "rationale": "one line why this drug for this patient"
-      }
-    ],
-    "specialInstructions": "",
-    "monitoringParameters": ["what to check at next visit"]
-  },
-  "idealDiet": {
-    "targetCalories": 0,
-    "macros": {
-      "carbsPercent": 0,
-      "proteinPercent": 0,
-      "fatPercent": 0
-    },
-    "mealPlan": ["Breakfast: ...", "Lunch: ...", "Dinner: ...", "Snacks: ..."],
-    "keralaMeals": ["Kerala-specific food swaps and recommendations"],
-    "avoid": ["foods to avoid with reason"],
-    "hydration": "water intake target"
-  },
-  "idealExercise": {
-    "type": "e.g. Brisk walking",
-    "minutesPerDay": 0,
-    "daysPerWeek": 0,
-    "weeklyMinutes": 0,
-    "progression": "how to build up over 3 months",
-    "restrictions": ["any activities to avoid given comorbidities"]
-  },
-  "idealFollowUpPlan": {
-    "nextVisitType": "Titration / Q1 / Q2 / Q3 / Annual",
-    "nextVisitDate": "YYYY-MM-DD",
-    "nextVisitFocus": ["what to assess at next visit"],
-    "targetsByNextVisit": {
-      "hba1c": "target value",
-      "weight": "target value",
-      "bp": "target value",
-      "other": []
-    },
-    "visitSequence": [
-      {"visit": "Index", "done": true},
-      {"visit": "Titration (1-2 weeks)", "done": false},
-      {"visit": "Q1 (3 months)", "done": false},
-      {"visit": "Q2 (6 months)", "done": false},
-      {"visit": "Q3 (9 months)", "done": false},
-      {"visit": "Annual surveillance", "done": false}
-    ],
-    "warningSignsToReturn": ["symptoms that require immediate return"]
-  }
+${schemaBody}
 }`;
 
   const userMessage = `Patient details: ${JSON.stringify(patientDetails || {})}
@@ -256,7 +249,7 @@ OUTPUT FORMAT — respond in valid JSON only, no markdown, no preamble:
 Consultation transcript / clinical notes:
 ${transcript}
 
-Generate the clinical output JSON. All drug names in generic form with brand name in brackets where helpful. Doses in standard Indian clinical notation. Follow the BREVITY RULES strictly — terse fragments, no prose, complete valid JSON is the priority.${sectionInstruction}`;
+Generate the clinical output JSON. All drug names in generic form with brand name in brackets where helpful. Doses in standard Indian clinical notation. Follow the BREVITY RULES strictly — terse fragments, no prose, complete valid JSON is the priority.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {

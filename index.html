@@ -100,8 +100,10 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .progress-step.active .dot{border-color:var(--purple);background:var(--purple);color:#fff;animation:pulse 1.2s infinite;}
 .progress-step.done .dot{border-color:var(--green);background:var(--green);color:#fff;}
 .progress-step.error .dot{border-color:var(--red);background:var(--red);color:#fff;}
-.analyse-bar{height:4px;background:rgba(232,106,26,0.15);border-radius:2px;overflow:hidden;margin:0.15rem 0 0.5rem 2.95rem;display:none;opacity:1;}
-.analyse-bar-fill{height:100%;width:0;background:#E86A1A;border-radius:2px;}
+.pct-bar{margin:0.3rem 0 0.5rem 2.95rem;display:none;opacity:1;}
+.pct-bar-track{height:6px;background:rgba(232,106,26,0.15);border-radius:3px;overflow:hidden;}
+.pct-bar-fill{height:100%;width:0%;background:#E86A1A;border-radius:3px;transition:width 0.5s linear;}
+.pct-bar-label{font-size:0.73rem;color:var(--text-sec);margin-top:0.25rem;display:block;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 
 /* Transcript box */
@@ -446,9 +448,10 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
   <!-- Progress -->
   <div class="progress-bar" id="progressBar">
-    <div class="progress-step" id="step1"><div class="dot">1</div><span>Transcribing audio…</span></div>
+    <div class="progress-step" id="step1"><div class="dot">1</div><span>Uploading &amp; transcribing audio…</span></div>
+    <div class="pct-bar" id="uploadBar"><div class="pct-bar-track"><div class="pct-bar-fill" id="uploadFill"></div></div><span class="pct-bar-label" id="uploadLabel">Uploading audio… 0%</span></div>
     <div class="progress-step" id="step2"><div class="dot">2</div><span>Analysing with SugarCARE clinical skill…</span></div>
-    <div class="analyse-bar" id="analyseBar"><div class="analyse-bar-fill"></div></div>
+    <div class="pct-bar" id="analyseBar"><div class="pct-bar-track"><div class="pct-bar-fill" id="analyseFill"></div></div><span class="pct-bar-label" id="analyseLabel">Analysing… 0%</span></div>
     <div class="progress-step" id="step3"><div class="dot">3</div><span>Generating output…</span></div>
   </div>
 
@@ -531,7 +534,7 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
   <div class="progress-bar" id="manualProgress">
     <div class="progress-step" id="mStep1"><div class="dot">1</div><span>Analysing with SugarCARE clinical skill…</span></div>
-    <div class="analyse-bar" id="manualAnalyseBar"><div class="analyse-bar-fill"></div></div>
+    <div class="pct-bar" id="manualAnalyseBar"><div class="pct-bar-track"><div class="pct-bar-fill" id="manualAnalyseFill"></div></div><span class="pct-bar-label" id="manualAnalyseLabel">Analysing… 0%</span></div>
     <div class="progress-step" id="mStep2"><div class="dot">2</div><span>Generating output…</span></div>
   </div>
 
@@ -761,33 +764,61 @@ function setStep(prefix, num, state) {
   else if (state === 'error') el.querySelector('.dot').textContent = '✗';
 }
 
-// Thin orange bar under the "Analysing…" step: creeps 0→90% over 40s via CSS transition.
-function startAnalyseBar(barId) {
+let _analyseTicker = null;
+
+function _setPctBar(barId, pct, label) {
+  const fill = document.getElementById(barId.replace('Bar','Fill') + (barId.startsWith('manual') ? '' : ''));
+  const lbl  = document.getElementById(barId.replace('Bar','Label') + (barId.startsWith('manual') ? '' : ''));
+  // IDs: uploadBar→uploadFill/uploadLabel, analyseBar→analyseFill/analyseLabel, manualAnalyseBar→manualAnalyseFill/manualAnalyseLabel
+  const fillEl = document.querySelector('#' + barId + ' .pct-bar-fill');
+  const lblEl  = document.querySelector('#' + barId + ' .pct-bar-label');
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (lblEl && label !== undefined) lblEl.textContent = label;
+}
+
+// Upload progress bar — driven by XHR upload.onprogress.
+function showUploadBar(barId) {
   const bar = document.getElementById(barId);
-  const fill = bar.querySelector('.analyse-bar-fill');
+  if (!bar) return;
   bar.style.display = 'block';
-  bar.style.transition = 'none';
   bar.style.opacity = '1';
-  fill.style.transition = 'none';
-  fill.style.width = '0%';
-  void fill.offsetWidth;              // force reflow so the 0% sticks before animating
-  fill.style.transition = 'width 40s linear';
-  fill.style.width = '90%';
+  _setPctBar(barId, 0, 'Uploading audio… 0%');
 }
-// Result arrived: snap to 100%, then fade the bar out.
+function updateUploadBar(barId, pct) {
+  _setPctBar(barId, pct, 'Uploading audio… ' + pct + '%');
+}
+function hideUploadBar(barId) {
+  _setPctBar(barId, 100, 'Uploading audio… 100%');
+  const bar = document.getElementById(barId);
+  setTimeout(() => { if (bar) { bar.style.transition = 'opacity 0.4s'; bar.style.opacity = '0'; } }, 200);
+  setTimeout(() => { if (bar) { bar.style.display = 'none'; bar.style.opacity = '1'; bar.style.transition = ''; } }, 650);
+}
+
+// Analysis progress bar — timer animates 0→90% over 30s; finishes to 100% on completion.
+function startAnalyseBar(barId) {
+  clearInterval(_analyseTicker);
+  const bar = document.getElementById(barId);
+  if (!bar) return;
+  bar.style.display = 'block';
+  bar.style.opacity = '1';
+  _setPctBar(barId, 0, 'Analysing… 0%');
+  const start = Date.now();
+  _analyseTicker = setInterval(() => {
+    const pct = Math.min(90, Math.round((Date.now() - start) / 30000 * 90));
+    _setPctBar(barId, pct, 'Analysing… ' + pct + '%');
+  }, 500);
+}
 function finishAnalyseBar(barId) {
+  clearInterval(_analyseTicker);
+  _setPctBar(barId, 100, 'Analysing… 100%');
   const bar = document.getElementById(barId);
-  const fill = bar.querySelector('.analyse-bar-fill');
-  fill.style.transition = 'width 0.3s ease-out';
-  fill.style.width = '100%';
-  setTimeout(() => { bar.style.transition = 'opacity 0.5s'; bar.style.opacity = '0'; }, 350);
-  setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0%'; }, 950);
+  setTimeout(() => { if (bar) { bar.style.transition = 'opacity 0.5s'; bar.style.opacity = '0'; } }, 350);
+  setTimeout(() => { if (bar) { bar.style.display = 'none'; bar.style.opacity = '1'; bar.style.transition = ''; } }, 900);
 }
-// Error/abort: hide immediately without the satisfying 100%.
 function hideAnalyseBar(barId) {
+  clearInterval(_analyseTicker);
   const bar = document.getElementById(barId);
-  bar.style.display = 'none';
-  bar.querySelector('.analyse-bar-fill').style.width = '0%';
+  if (bar) bar.style.display = 'none';
 }
 
 async function transcribeAndAnalyse() {
@@ -811,12 +842,23 @@ async function transcribeAndAnalyse() {
     fd.append('model', 'whisper-large-v3');
     fd.append('language', 'en');
 
-    const res = await fetch('/api/transcribe', {
-      method: 'POST',
-      body: fd
+    showUploadBar('uploadBar');
+    const data = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/transcribe');
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) updateUploadBar('uploadBar', Math.round(e.loaded / e.total * 100));
+      };
+      xhr.onload = () => {
+        let r; try { r = JSON.parse(xhr.responseText); } catch { reject(new Error('Transcription failed')); return; }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(r);
+        else reject(new Error(r.error || 'Transcription failed'));
+      };
+      xhr.onerror = () => reject(new Error('Network error during upload'));
+      xhr.send(fd);
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Transcription failed');
+    hideUploadBar('uploadBar');
+    if (!data.transcript && data.error) throw new Error(data.error);
 
     setStep('step', 1, 'done');
     document.getElementById('transcriptText').value = data.transcript;
