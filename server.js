@@ -137,10 +137,31 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
 
 /* ============ POST /api/analyse — Claude clinical-structuring proxy ============ */
 app.post('/api/analyse', async (req, res) => {
-  const { transcript, patientDetails } = req.body || {};
+  const { transcript, patientDetails, selectedOutputs } = req.body || {};
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Server is missing ANTHROPIC_API_KEY configuration' });
   if (!transcript) return res.status(400).json({ error: 'Missing transcript or clinical notes' });
+
+  // Map the doctor's selected outputs to the JSON sections Claude must produce.
+  // The Care Card is a composite print — it draws on prescription + exercise + follow-up.
+  const SECTION_FOR_OUTPUT = {
+    context:      ['context'],
+    prescription: ['idealPrescription'],
+    careCard:     ['idealPrescription', 'idealExercise', 'idealFollowUpPlan'],
+    diet:         ['idealDiet'],
+    exercise:     ['idealExercise'],
+    followUp:     ['idealFollowUpPlan']
+  };
+  const ALL_SECTIONS = ['context', 'idealPrescription', 'idealDiet', 'idealExercise', 'idealFollowUpPlan'];
+  let wantSections = ALL_SECTIONS;
+  if (Array.isArray(selectedOutputs) && selectedOutputs.length) {
+    const set = new Set();
+    selectedOutputs.forEach(o => (SECTION_FOR_OUTPUT[o] || []).forEach(s => set.add(s)));
+    if (set.size) wantSections = ALL_SECTIONS.filter(s => set.has(s));
+  }
+  const sectionInstruction = wantSections.length === ALL_SECTIONS.length
+    ? ''
+    : `\n\nGenerate ONLY these top-level JSON sections: ${wantSections.join(', ')}. Skip all other sections completely — do not include them in the JSON at all. This reduces output size, so be even more concise.`;
 
   const system = `You are a clinical documentation assistant for SugarCARE, a specialist diabetes management clinic in Malappuram, Kerala, India, run by HomoRx Healthtech. You assist doctors by structuring consultation data into clinical outputs.
 
@@ -235,7 +256,7 @@ OUTPUT FORMAT — respond in valid JSON only, no markdown, no preamble:
 Consultation transcript / clinical notes:
 ${transcript}
 
-Generate the clinical output JSON. All drug names in generic form with brand name in brackets where helpful. Doses in standard Indian clinical notation. Follow the BREVITY RULES strictly — terse fragments, no prose, complete valid JSON is the priority.`;
+Generate the clinical output JSON. All drug names in generic form with brand name in brackets where helpful. Doses in standard Indian clinical notation. Follow the BREVITY RULES strictly — terse fragments, no prose, complete valid JSON is the priority.${sectionInstruction}`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
