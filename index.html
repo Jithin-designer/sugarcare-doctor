@@ -93,6 +93,8 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .progress-step.active .dot{border-color:var(--purple);background:var(--purple);color:#fff;animation:pulse 1.2s infinite;}
 .progress-step.done .dot{border-color:var(--green);background:var(--green);color:#fff;}
 .progress-step.error .dot{border-color:var(--red);background:var(--red);color:#fff;}
+.analyse-bar{height:4px;background:rgba(232,106,26,0.15);border-radius:2px;overflow:hidden;margin:0.15rem 0 0.5rem 2.95rem;display:none;opacity:1;}
+.analyse-bar-fill{height:100%;width:0;background:#E86A1A;border-radius:2px;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
 
 /* Transcript box */
@@ -273,6 +275,7 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
   <div class="progress-bar" id="progressBar">
     <div class="progress-step" id="step1"><div class="dot">1</div><span>Transcribing audio…</span></div>
     <div class="progress-step" id="step2"><div class="dot">2</div><span>Analysing with SugarCARE clinical skill…</span></div>
+    <div class="analyse-bar" id="analyseBar"><div class="analyse-bar-fill"></div></div>
     <div class="progress-step" id="step3"><div class="dot">3</div><span>Generating output…</span></div>
   </div>
 
@@ -345,6 +348,7 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
   <div class="progress-bar" id="manualProgress">
     <div class="progress-step" id="mStep1"><div class="dot">1</div><span>Analysing with SugarCARE clinical skill…</span></div>
+    <div class="analyse-bar" id="manualAnalyseBar"><div class="analyse-bar-fill"></div></div>
     <div class="progress-step" id="mStep2"><div class="dot">2</div><span>Generating output…</span></div>
   </div>
 
@@ -568,6 +572,35 @@ function setStep(prefix, num, state) {
   else if (state === 'error') el.querySelector('.dot').textContent = '✗';
 }
 
+// Thin orange bar under the "Analysing…" step: creeps 0→90% over 40s via CSS transition.
+function startAnalyseBar(barId) {
+  const bar = document.getElementById(barId);
+  const fill = bar.querySelector('.analyse-bar-fill');
+  bar.style.display = 'block';
+  bar.style.transition = 'none';
+  bar.style.opacity = '1';
+  fill.style.transition = 'none';
+  fill.style.width = '0%';
+  void fill.offsetWidth;              // force reflow so the 0% sticks before animating
+  fill.style.transition = 'width 40s linear';
+  fill.style.width = '90%';
+}
+// Result arrived: snap to 100%, then fade the bar out.
+function finishAnalyseBar(barId) {
+  const bar = document.getElementById(barId);
+  const fill = bar.querySelector('.analyse-bar-fill');
+  fill.style.transition = 'width 0.3s ease-out';
+  fill.style.width = '100%';
+  setTimeout(() => { bar.style.transition = 'opacity 0.5s'; bar.style.opacity = '0'; }, 350);
+  setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0%'; }, 950);
+}
+// Error/abort: hide immediately without the satisfying 100%.
+function hideAnalyseBar(barId) {
+  const bar = document.getElementById(barId);
+  bar.style.display = 'none';
+  bar.querySelector('.analyse-bar-fill').style.width = '0%';
+}
+
 async function transcribeAndAnalyse() {
   if (!audioBlob) return;
   const groqKey = cfg('groq');
@@ -607,6 +640,7 @@ async function transcribeAndAnalyse() {
 
     // Step 2: Analyse
     setStep('step', 2, 'active');
+    startAnalyseBar('analyseBar');
     const patient = getAudioPatient();
     const aRes = await fetch('/api/analyse', {
       method: 'POST',
@@ -616,10 +650,12 @@ async function transcribeAndAnalyse() {
     const aData = await aRes.json();
     if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
 
+    finishAnalyseBar('analyseBar');
     setStep('step', 2, 'done');
     setStep('step', 3, 'done');
     renderOutput('audioOutput', aData, patient);
   } catch (e) {
+    hideAnalyseBar('analyseBar');
     const active = document.querySelector('.progress-step.active');
     if (active) active.className = 'progress-step error';
     showToast('Error: ' + e.message);
@@ -636,6 +672,7 @@ async function reAnalyse() {
   const prog = document.getElementById('progressBar');
   prog.classList.add('visible');
   setStep('step', 2, 'active');
+  startAnalyseBar('analyseBar');
   document.getElementById('audioOutput').classList.remove('visible');
 
   try {
@@ -647,10 +684,12 @@ async function reAnalyse() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Analysis failed');
+    finishAnalyseBar('analyseBar');
     setStep('step', 2, 'done');
     setStep('step', 3, 'done');
     renderOutput('audioOutput', data, patient);
   } catch (e) {
+    hideAnalyseBar('analyseBar');
     setStep('step', 2, 'error');
     showToast('Error: ' + e.message);
   }
@@ -702,6 +741,7 @@ async function manualAnalyse() {
   document.getElementById('manualOutput').innerHTML = '';
 
   setStep('mStep', 1, 'active');
+  startAnalyseBar('manualAnalyseBar');
   try {
     const res = await fetch('/api/analyse', {
       method: 'POST',
@@ -710,10 +750,12 @@ async function manualAnalyse() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Analysis failed');
+    finishAnalyseBar('manualAnalyseBar');
     setStep('mStep', 1, 'done');
     setStep('mStep', 2, 'done');
     renderOutput('manualOutput', data, patient);
   } catch (e) {
+    hideAnalyseBar('manualAnalyseBar');
     setStep('mStep', 1, 'error');
     showToast('Error: ' + e.message);
   }
@@ -744,18 +786,19 @@ function renderOutput(targetId, data, patient) {
 
   // helper: array -> <li> list
   const li = arr => (arr||[]).map(x => `<li>${esc(x)}</li>`).join('');
+  // helper: array -> red alert boxes
+  const alerts = arr => (arr||[]).map(x => `<div class="out-flag">${esc(x)}</div>`).join('');
 
-  // --- medications (shared by Care Card + Prescription) ---
+  // --- Prescription medications ---
   const meds = rx.medications || [];
-  const ccMedsHTML = meds.map(m => `<tr><td>${esc(m.drug)}</td><td>${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.instructions)}</td></tr>`).join('');
-  const rxMedsHTML = meds.map((m,i) => `<tr><td>${i+1}</td><td>${esc(m.drug)}</td><td>${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.duration)}</td><td>${esc(m.instructions)}</td><td>${esc(m.costTier)}</td></tr>`).join('');
+  const rxMedsHTML = meds.map((m,i) => `<tr><td>${i+1}</td><td>${esc(m.drug)}</td><td>${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.instructions)}</td><td>${esc(m.costTier)}</td></tr>`).join('');
 
-  // --- diet ---
+  // --- Diet ---
   const macros = diet.macros || {};
   const macroLine = (macros.carbsPercent || macros.proteinPercent || macros.fatPercent)
     ? `Carbs ${esc(macros.carbsPercent)}% · Protein ${esc(macros.proteinPercent)}% · Fat ${esc(macros.fatPercent)}%` : '';
 
-  // --- exercise ---
+  // --- Exercise (single composed string) ---
   const exLine = [
     ex.type ? esc(ex.type) : '',
     ex.minutesPerDay ? esc(ex.minutesPerDay) + ' min/day' : '',
@@ -763,78 +806,80 @@ function renderOutput(targetId, data, patient) {
     ex.weeklyMinutes ? '(' + esc(ex.weeklyMinutes) + ' min/week total)' : ''
   ].filter(Boolean).join(' · ');
 
-  // --- follow-up ---
+  // --- Follow-up targets table ---
   const targets = fup.targetsByNextVisit || {};
-  const targetsHTML = [
-    targets.hba1c  ? `<li>HbA1c: ${esc(targets.hba1c)}</li>`  : '',
-    targets.weight ? `<li>Weight: ${esc(targets.weight)}</li>` : '',
-    targets.bp     ? `<li>BP: ${esc(targets.bp)}</li>`         : '',
-    ...(targets.other || []).map(o => `<li>${esc(o)}</li>`)
+  const targetRows = [
+    targets.hba1c  ? `<tr><td>HbA1c</td><td>${esc(targets.hba1c)}</td></tr>`  : '',
+    targets.weight ? `<tr><td>Weight</td><td>${esc(targets.weight)}</td></tr>` : '',
+    targets.bp     ? `<tr><td>BP</td><td>${esc(targets.bp)}</td></tr>`         : '',
+    ...(targets.other || []).map(o => `<tr><td>Other</td><td>${esc(o)}</td></tr>`)
   ].join('');
-  const seqHTML = (fup.visitSequence || []).map(v => `<li>${v.done ? '✓' : '○'} ${esc(v.visit)}</li>`).join('');
-  const redFlagsHTML = (ctx.redFlags || []).map(f => `<div class="out-flag">${esc(f)}</div>`).join('');
 
   el.innerHTML = `
     <div class="out-tabs no-print">
-      <button class="out-tab active" onclick="switchOut(this,0)">Care Card</button>
+      <button class="out-tab active" onclick="switchOut(this,0)">Context</button>
       <button class="out-tab" onclick="switchOut(this,1)">Prescription</button>
-      <button class="out-tab" onclick="switchOut(this,2)">Clinical Notes</button>
+      <button class="out-tab" onclick="switchOut(this,2)">Diet</button>
+      <button class="out-tab" onclick="switchOut(this,3)">Exercise</button>
+      <button class="out-tab" onclick="switchOut(this,4)">Follow-up</button>
     </div>
     <div class="out-panel">
+
+      <!-- 0: Context -->
       <div class="out-content active" id="${targetId}_0">
         ${headerHTML}
-        <div class="out-section-title">Clinical Picture</div>
+        <div class="out-section-title">Summary</div>
         <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
-        <div class="out-section-title">Your Treatment Plan</div>
-        <table class="out-med-table"><thead><tr><th>Drug</th><th>Dose</th><th>Frequency</th><th>Instructions</th></tr></thead><tbody>${ccMedsHTML || '<tr><td colspan="4">No medications</td></tr>'}</tbody></table>
-        <div class="out-section-title">Diet Plan${diet.targetCalories ? ' — ' + esc(diet.targetCalories) + ' kcal/day' : ''}</div>
-        ${macroLine ? '<p style="font-size:0.82rem;color:var(--text-sec);">'+macroLine+'</p>' : ''}
-        <ul class="out-bullets">${li(diet.mealPlan) || '<li>No meal plan provided</li>'}</ul>
-        ${diet.keralaMeals && diet.keralaMeals.length ? '<div class="out-section-title">Kerala Food Swaps</div><ul class="out-bullets">'+li(diet.keralaMeals)+'</ul>' : ''}
-        ${diet.avoid && diet.avoid.length ? '<div class="out-section-title">Foods to Avoid</div><ul class="out-bullets warning">'+li(diet.avoid)+'</ul>' : ''}
-        ${diet.hydration ? '<p style="font-size:0.85rem;"><strong>Hydration:</strong> '+esc(diet.hydration)+'</p>' : ''}
-        <div class="out-section-title">Exercise</div>
-        ${exLine ? '<p style="font-size:0.88rem;">'+exLine+'</p>' : '<p style="font-size:0.88rem;">—</p>'}
-        ${ex.progression ? '<p style="font-size:0.85rem;color:var(--text-sec);"><strong>Build up:</strong> '+esc(ex.progression)+'</p>' : ''}
-        ${ex.restrictions && ex.restrictions.length ? '<p style="font-size:0.85rem;color:var(--red);"><strong>Avoid:</strong> '+esc((ex.restrictions||[]).join('; '))+'</p>' : ''}
-        <div class="out-section-title">Next Appointment</div>
-        <p style="font-size:0.88rem;">${esc(fup.nextVisitType || '—')}${fup.nextVisitDate ? ' — ' + esc(fup.nextVisitDate) : ''}</p>
-        ${targetsHTML ? '<div class="out-section-title">Targets by Next Visit</div><ul class="out-bullets">'+targetsHTML+'</ul>' : ''}
-        <div class="out-section-title">Warning Signs — Come Back If</div>
-        <ul class="out-bullets warning">${li(fup.warningSignsToReturn) || '<li>No specific warnings</li>'}</ul>
-        <div class="out-disclaimer">SugarCARE · ${esc(cl ? 'SugarCARE '+cl : '')} · ${esc(dr)} · ${esc(today)}<br>Clinical decision support only. Prescriber judgement is final.</div>
+        ${ctx.missingData && ctx.missingData.length ? '<div class="out-section-title">Missing Data — Collect</div><div class="out-flags">'+alerts(ctx.missingData)+'</div>' : ''}
+        <div class="out-section-title">Deviations / Abnormal Values</div>
+        <ul class="out-bullets">${li(ctx.deviations) || '<li>None noted</li>'}</ul>
+        ${ctx.redFlags && ctx.redFlags.length ? '<div class="out-section-title">Red Flags</div><div class="out-flags">'+alerts(ctx.redFlags)+'</div>' : ''}
+        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
       </div>
 
+      <!-- 1: Prescription -->
       <div class="out-content" id="${targetId}_1">
         ${headerHTML}
         <div class="out-rx-symbol">℞</div>
-        <table class="out-med-table"><thead><tr><th>#</th><th>Drug</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Instructions</th><th>Cost</th></tr></thead><tbody>${rxMedsHTML}</tbody></table>
+        <table class="out-med-table"><thead><tr><th>#</th><th>Drug</th><th>Dose</th><th>Frequency</th><th>Instructions</th><th>Cost</th></tr></thead><tbody>${rxMedsHTML || '<tr><td colspan="6">No medications</td></tr>'}</tbody></table>
         ${rx.specialInstructions ? '<div class="out-section-title">Special Instructions</div><p style="font-size:0.88rem;">'+esc(rx.specialInstructions)+'</p>' : ''}
         ${rx.monitoringParameters && rx.monitoringParameters.length ? '<div class="out-section-title">Monitoring Parameters</div><ul class="out-bullets">'+li(rx.monitoringParameters)+'</ul>' : ''}
         <div class="out-sig"><div class="out-sig-line">Signature of Prescriber</div></div>
         <div class="out-disclaimer">For use as prescribed. Verify all drug data with CIMS India before dispensing.<br>SugarCARE · HomoRx Healthtech</div>
       </div>
 
+      <!-- 2: Diet -->
       <div class="out-content" id="${targetId}_2">
         ${headerHTML}
-        <div class="out-section-title">Summary</div>
-        <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
-        <div class="out-section-title">Deviations / Abnormal Values</div>
-        <ul class="out-bullets">${li(ctx.deviations) || '<li>None noted</li>'}</ul>
-        <div class="out-section-title">Internal Issues</div>
-        <ul class="out-bullets">${li(ctx.internalIssues) || '<li>None noted</li>'}</ul>
-        <div class="out-section-title">Missing Data</div>
-        <ul class="out-bullets">${li(ctx.missingData) || '<li>None — data complete</li>'}</ul>
-        ${redFlagsHTML ? '<div class="out-section-title">Red Flags</div><div class="out-flags">'+redFlagsHTML+'</div>' : ''}
+        <div class="out-section-title">Diet Plan${diet.targetCalories ? ' — ' + esc(diet.targetCalories) + ' kcal/day' : ''}</div>
+        ${macroLine ? '<p style="font-size:0.85rem;color:var(--text-sec);">'+macroLine+'</p>' : ''}
+        ${diet.keralaMeals && diet.keralaMeals.length ? '<div class="out-section-title">Kerala Food Swaps</div><ul class="out-bullets">'+li(diet.keralaMeals)+'</ul>' : ''}
+        ${diet.hydration ? '<p style="font-size:0.88rem;"><strong>Hydration:</strong> '+esc(diet.hydration)+'</p>' : ''}
+        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
+      </div>
+
+      <!-- 3: Exercise -->
+      <div class="out-content" id="${targetId}_3">
+        ${headerHTML}
+        <div class="out-section-title">Exercise</div>
+        <p style="font-size:0.95rem;font-weight:600;">${exLine || '—'}</p>
+        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
+      </div>
+
+      <!-- 4: Follow-up -->
+      <div class="out-content" id="${targetId}_4">
+        ${headerHTML}
+        <div class="out-section-title">Next Visit</div>
+        <p style="font-size:0.88rem;">${esc(fup.nextVisitType || '—')}${fup.nextVisitDate ? ' — ' + esc(fup.nextVisitDate) : ''}</p>
         ${fup.nextVisitFocus && fup.nextVisitFocus.length ? '<div class="out-section-title">Next Visit Focus</div><ul class="out-bullets">'+li(fup.nextVisitFocus)+'</ul>' : ''}
-        ${seqHTML ? '<div class="out-section-title">Visit Sequence</div><ul class="out-bullets">'+seqHTML+'</ul>' : ''}
-        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
+        ${targetRows ? '<div class="out-section-title">Targets by Next Visit</div><table class="out-med-table"><thead><tr><th>Parameter</th><th>Target</th></tr></thead><tbody>'+targetRows+'</tbody></table>' : ''}
+        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
       </div>
 
       <div class="out-actions no-print">
         <button class="btn btn-outline btn-sm" onclick="copyOut('${targetId}')">Copy</button>
         <button class="btn btn-outline btn-sm" onclick="printOut('${targetId}')">Print This</button>
-        <button class="btn btn-purple btn-sm" onclick="printAll('${targetId}')">Print All (Care Card + Rx)</button>
+        <button class="btn btn-purple btn-sm" onclick="printAll('${targetId}')">Print All</button>
       </div>
     </div>`;
 
@@ -874,8 +919,7 @@ function printOut(targetId) {
 
 function printAll(targetId) {
   document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','print-all'));
-  document.getElementById(targetId + '_0').classList.add('print-all');
-  document.getElementById(targetId + '_1').classList.add('print-all');
+  document.getElementById(targetId).querySelectorAll('.out-content').forEach(c => c.classList.add('print-all'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
   document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
   window.print();
