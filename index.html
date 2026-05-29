@@ -212,10 +212,11 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
   .scc-host .scc-doc .day-label{margin-bottom:10px;}
 }
 
-/* Output selector — section checkboxes */
-.out-selector{display:flex;flex-wrap:wrap;gap:0.5rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:0.5rem;}
-.out-cb-lbl{display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;font-weight:600;color:var(--text-sec);cursor:pointer;user-select:none;}
-.out-cb-lbl input{width:15px;height:15px;accent-color:var(--purple);cursor:pointer;}
+/* Output selector — section checkboxes (static bar, shown before analysis) */
+.out-selector{display:flex;flex-wrap:wrap;gap:0.4rem 0.9rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.9rem;margin-bottom:0.75rem;align-items:center;}
+.out-selector-label{font-size:0.7rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:0.4px;margin-right:0.25rem;white-space:nowrap;}
+.out-cb-lbl{display:flex;align-items:center;gap:0.28rem;font-size:0.72rem;font-weight:600;color:var(--text-sec);cursor:pointer;user-select:none;white-space:nowrap;}
+.out-cb-lbl input{width:14px;height:14px;accent-color:var(--purple);cursor:pointer;}
 .out-cb-lbl:has(input:checked){color:var(--text);}
 
 /* Ghost button (Save to DM Pro — coming soon) */
@@ -429,6 +430,16 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
     </div>
   </div>
 
+  <div class="out-selector no-print" id="selectorAudio">
+    <span class="out-selector-label">Print:</span>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="context"  checked> Clinical Context</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="rx"       checked> Prescription</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="carecard" checked> Patient Care Card</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="diet"     checked> Diet Plan</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="exercise" checked> Exercise</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="followup" checked> Follow-up</label>
+  </div>
+
   <div class="generate-bar" style="text-align:center;margin-bottom:1rem;">
     <button class="btn btn-orange" id="transcribeBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.75rem 2rem;font-size:0.95rem;">Transcribe &amp; Analyse</button>
   </div>
@@ -502,6 +513,16 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
     <div class="row"><div class="fld"><label>Key Findings / History</label><textarea id="m_history" rows="3" placeholder="Relevant clinical history, exam findings…"></textarea></div></div>
     <div class="row"><div class="fld"><label>Herbal / AYUSH / OTC</label><textarea id="m_herbal" rows="2" placeholder="Any alternative medicines or supplements…"></textarea></div></div>
     <div class="row"><div class="fld"><label>Lifestyle Notes</label><textarea id="m_lifestyle" rows="2" placeholder="Diet, exercise, smoking, sleep…"></textarea></div></div>
+  </div>
+
+  <div class="out-selector no-print" id="selectorManual">
+    <span class="out-selector-label">Print:</span>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="context"  checked> Clinical Context</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="rx"       checked> Prescription</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="carecard" checked> Patient Care Card</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="diet"     checked> Diet Plan</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="exercise" checked> Exercise</label>
+    <label class="out-cb-lbl"><input type="checkbox" data-key="followup" checked> Follow-up</label>
   </div>
 
   <div style="text-align:center;margin-bottom:1rem;">
@@ -974,14 +995,6 @@ function renderOutput(targetId, data, patient) {
   ].join('');
 
   el.innerHTML = `
-    <div class="out-selector no-print">
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="context"  checked onchange="toggleOutSection(this,'${targetId}','context')"> Clinical Context (internal)</label>
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="rx"       checked onchange="toggleOutSection(this,'${targetId}','rx')"> Prescription</label>
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="carecard" checked onchange="toggleOutSection(this,'${targetId}','carecard')"> Patient Care Card</label>
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="diet"     checked onchange="toggleOutSection(this,'${targetId}','diet')"> Diet Plan</label>
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="exercise" checked onchange="toggleOutSection(this,'${targetId}','exercise')"> Exercise</label>
-      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="followup" checked onchange="toggleOutSection(this,'${targetId}','followup')"> Follow-up</label>
-    </div>
     <div class="out-tabs no-print">
       <button class="out-tab active" data-key="context"  onclick="switchOut(this)">Context</button>
       <button class="out-tab"        data-key="rx"        onclick="switchOut(this)">Prescription</button>
@@ -1224,18 +1237,6 @@ function switchOut(btn) {
   panel.querySelectorAll('.out-content').forEach((c,j) => c.classList.toggle('active', j===i));
 }
 
-// Show/hide a section's tab via its checkbox; if the active tab is hidden, jump to the first visible one.
-function toggleOutSection(cb, targetId, key) {
-  const panel = document.getElementById(targetId);
-  const tabBtn = panel.querySelector(`.out-tab[data-key="${key}"]`);
-  if (!tabBtn) return;
-  tabBtn.style.display = cb.checked ? '' : 'none';
-  if (!cb.checked && tabBtn.classList.contains('active')) {
-    const firstVisible = [...panel.querySelectorAll('.out-tab')].find(t => t.style.display !== 'none');
-    if (firstVisible) switchOut(firstVisible);
-  }
-}
-
 function activeOutContent(targetId) {
   return document.getElementById(targetId).querySelector('.out-content.active');
 }
@@ -1261,11 +1262,19 @@ function printOut(targetId) {
 
 // "Print Selected" — print only the checked printable pages (Clinical Context · Prescription · Patient Care Card),
 // each on its own A4 sheet. Diet / Exercise / Follow-up are screen-only references and are never printed.
+// Reads checkbox state from the static pre-analysis selector bar (selectorAudio / selectorManual).
 function printSelected(targetId) {
   const panel = document.getElementById(targetId);
   const host = document.getElementById(targetId + '_carecard');
   const pages = host ? [...host.querySelectorAll('.scc-doc .page')] : [];
-  const wants = key => { const cb = panel.querySelector(`.out-cb[data-key="${key}"]`); return !cb || cb.checked; };
+  // Find the static selector bar that belongs to the same main tab as this output panel.
+  const mainTab = panel.closest('.tab-panel');
+  const staticBar = mainTab ? mainTab.querySelector('.out-selector') : null;
+  const wants = key => {
+    const src = staticBar || panel;
+    const cb = src.querySelector(`[data-key="${key}"]`);
+    return !cb || cb.checked;
+  };
   const selected = pages.filter(pg => wants(pg.dataset.pp));
   if (!selected.length) { showToast('Nothing selected to print'); return; }
 
