@@ -6,7 +6,7 @@
 <title>SugarCARE Consult</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   --purple: #4A2FA0; --purple-light: #6B4FCF; --orange: #E86A1A;
@@ -160,91 +160,155 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
 /* Print */
 @media print{
-  @page{size:A4;margin:12mm 15mm;}
+  @page{size:A4;margin:0;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   body{background:#fff;color:#000;font-size:11pt;}
   .app-header,.config-bar,.main-tabs,.app-footer,.no-print,
   .audio-input,.progress-bar,.transcript-box,
-  .out-tabs,.out-actions,.btn-row,.generate-bar,
+  .out-tabs,.out-selector,.out-actions,.btn-row,.generate-bar,
   .tab-panel:not(.print-active){display:none!important;}
+  .container{max-width:none;padding:0;}
   .output-section{display:block!important;}
   .out-panel{border:none;box-shadow:none;padding:0;border-radius:0;}
   .out-content{display:none!important;}
   .out-content.print-target{display:block!important;}
-  .out-content.print-all{display:block!important;page-break-after:always;}
-  .out-content.print-all:last-child{page-break-after:auto;}
+  /* Legacy single-tab prints bring their own page margin (since @page margin is 0) */
+  .out-content.print-target:not(.scc-host),#rxPrintArea{padding:14mm 15mm;}
   .out-header h2{color:#4A2FA0;}
   .out-header h2 span{color:#E86A1A;}
   .section{border:none;box-shadow:none;padding:0;}
   .fld input,.fld select,.fld textarea{border:none;padding:0;background:transparent;}
   .med-table input{border:none;padding:0;background:transparent;font-size:9pt;}
-  /* Care card print — preserve warm paper + gradient cards */
-  .cc-wrap{background:#F6F1E7!important;}
-  .cc-clinical,.cc-donut-wrap,.cc-ex-panel,.cc-visit,.cc-tracker{background:#FFFDF8!important;}
-  .cc-tcard{background:linear-gradient(160deg,#4A2FA0,#2D1B6B)!important;color:#fff!important;}
-  .cc-sec-num{background:#4A2FA0!important;color:#fff!important;}
-  .cc-badge-green{background:#D4EDDA!important;color:#155724!important;}
-  .cc-badge-blue{background:#CCE5FF!important;color:#004085!important;}
-  .cc-badge-amber{background:#FFF3CD!important;color:#856404!important;}
-  .cc-missing{background:#FFF8E7!important;}
-  .cc-redflag-box{background:#FBEEEA!important;}
-  .cc-hint{background:#EFF4E8!important;}
+  /* Care-card 3-page document: print only pages flagged .pp-print, each on its own A4 sheet */
+  .scc-host{padding:0!important;}
+  .scc-host .scc-doc .page{display:none;}
+  .scc-host .scc-doc .page.pp-print{display:block;width:100%;max-width:none;min-height:auto;margin:0;box-shadow:none;border:none;border-radius:0;page-break-after:always;}
+  .scc-host .scc-doc .page.pp-print.pp-last{page-break-after:auto;}
+  .scc-host .scc-doc .doc-footer{position:absolute;bottom:10mm;left:15mm;right:15mm;margin-top:0;}
 }
 
-/* ===== Care Card — patient-facing warm-paper design ===== */
-.cc-wrap{background:#F6F1E7;border-radius:14px;padding:14px 13px 12px;font-family:'Outfit',system-ui,sans-serif;color:#1E3A30;}
-.cc-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #1E3A30;padding-bottom:10px;margin-bottom:13px;}
-.cc-brand h1{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:18px;color:#1E3A30;line-height:1;}
-.cc-brand h1 span{color:#E86A1A;}
-.cc-brand .cc-tagline{font-size:10.5px;color:#4A2FA0;font-weight:600;margin-top:3px;}
-.cc-meta{text-align:right;font-size:11px;line-height:1.55;color:#1E3A30;}
-.cc-clinical{background:#FFFDF8;border:1.5px solid #D9D0BC;border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:11.5px;line-height:1.5;}
-.cc-missing{background:#FFF8E7;border-left:3px solid #E86A1A;border-radius:0 6px 6px 0;padding:5px 9px;margin-top:8px;font-size:11px;color:#7a5a00;}
-.cc-redflag-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;}
-.cc-redflag-box{background:#FBEEEA;border:1px solid #E6B3A6;border-radius:9px;padding:7px 9px;font-size:11px;color:#5a3a30;}
-.cc-redflag-box .cc-lbl{font-size:10px;font-weight:700;color:#C0492F;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
-.cc-sec{margin-bottom:12px;}
-.cc-sec-head{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
-.cc-sec-num{width:22px;height:22px;border-radius:50%;background:#4A2FA0;color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.cc-sec-head h3{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:14.5px;color:#1E3A30;}
-.cc-med-table{width:100%;border-collapse:collapse;font-size:11px;margin:.25rem 0;}
-.cc-med-table th{text-align:left;font-size:9.5px;font-weight:700;color:#64648C;text-transform:uppercase;letter-spacing:.4px;padding:5px 4px;border-bottom:2px solid #D9D0BC;}
-.cc-med-table td{padding:5px 4px;border-bottom:1px solid #EDE6D6;vertical-align:top;color:#1E3A30;}
-.cc-badge{display:inline-block;padding:1px 7px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:.3px;}
-.cc-badge-green{background:#D4EDDA;color:#155724;}
-.cc-badge-blue{background:#CCE5FF;color:#004085;}
-.cc-badge-amber{background:#FFF3CD;color:#856404;}
-.cc-hint{margin-top:8px;background:#EFF4E8;border:1px dashed #6E9B5E;border-radius:10px;padding:8px 11px;font-size:11px;display:flex;gap:8px;align-items:flex-start;color:#1E3A30;}
-.cc-food-grid{display:grid;grid-template-columns:140px 1fr;gap:14px;align-items:start;}
-.cc-donut-wrap{background:#FFFDF8;border:1.5px solid #D9D0BC;border-radius:12px;padding:9px;text-align:center;}
-.cc-donut{width:110px;height:110px;margin:0 auto 6px;}
-.cc-cal{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:800;font-size:13px;color:#E86A1A;text-align:center;}
-.cc-legend{font-size:10px;line-height:1.5;text-align:left;padding:0 2px;margin-top:4px;}
-.cc-legend div{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
-.cc-sw{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
-.cc-meal-list{list-style:none;padding:0;}
-.cc-meal-list li{padding:4px 0;border-bottom:1px solid #EDE6D6;font-size:11px;color:#1E3A30;line-height:1.4;}
-.cc-meal-list li:last-child{border-bottom:none;}
-.cc-hydration{margin-top:7px;font-size:11px;color:#1E3A30;font-weight:600;}
-.cc-ex-panel{background:#FFFDF8;border:1.5px solid #D9D0BC;border-radius:12px;padding:11px 13px;display:flex;align-items:flex-start;gap:11px;}
-.cc-ex-icon{width:34px;height:34px;color:#4A2FA0;flex-shrink:0;}
-.cc-ex-text{font-size:12px;line-height:1.45;color:#1E3A30;font-weight:600;}
-.cc-ex-prog{font-size:10.5px;color:#64648C;margin-top:4px;}
-.cc-targets{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:8px;}
-.cc-tcard{background:linear-gradient(160deg,#4A2FA0,#2D1B6B);color:#fff;border-radius:12px;padding:11px 10px;text-align:center;}
-.cc-tcard .cc-when{font-size:10px;font-weight:700;letter-spacing:.5px;opacity:.8;text-transform:uppercase;}
-.cc-tcard .cc-goal{font-size:11px;margin-top:5px;line-height:1.4;}
-.cc-tcard .cc-goal b{color:#E86A1A;font-family:'Bricolage Grotesque',system-ui,sans-serif;font-size:12px;}
-.cc-visit{background:#FFFDF8;border:1.5px solid #D9D0BC;border-radius:9px;padding:7px 11px;font-size:11px;color:#1E3A30;margin-top:7px;}
-.cc-tracker{background:#FFFDF8;border:1.5px solid #D9D0BC;border-radius:12px;padding:10px 12px;margin-top:11px;}
-.cc-tracker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:4px;}
-.cc-tracker-head h4{font-family:'Bricolage Grotesque',system-ui,sans-serif;font-weight:700;font-size:12px;color:#1E3A30;}
-.cc-tracker-head .cc-note{font-size:10px;color:#E86A1A;font-weight:600;}
-.cc-logrow{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;}
-.cc-logcell{border:1px solid #D9D0BC;border-radius:8px;padding:6px 3px 22px;text-align:center;}
-.cc-logcell .cc-wk{font-weight:700;color:#1E3A30;font-size:9.5px;display:block;margin-bottom:6px;}
-.cc-footer{margin-top:11px;padding-top:8px;border-top:1.5px solid #D9D0BC;display:flex;justify-content:space-between;align-items:flex-start;font-size:10px;color:#7a7263;flex-wrap:wrap;gap:4px;}
-.cc-disc{font-size:8.5px;color:#9a9282;font-style:italic;max-width:58%;text-align:right;}
+/* Output selector — section checkboxes */
+.out-selector{display:flex;flex-wrap:wrap;gap:0.5rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:0.5rem;}
+.out-cb-lbl{display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;font-weight:600;color:var(--text-sec);cursor:pointer;user-select:none;}
+.out-cb-lbl input{width:15px;height:15px;accent-color:var(--purple);cursor:pointer;}
+.out-cb-lbl:has(input:checked){color:var(--text);}
+
+/* Ghost button (Save to DM Pro — coming soon) */
+.btn-ghost{background:transparent;border:1px dashed var(--border);color:var(--text-sec);cursor:not-allowed;}
+.btn-ghost:hover{opacity:1;}
+
+/* ===== Care-card / Rx / Context — 3-page print document (v3-white) ===== */
+.scc-doc{
+  --purple:#4A2FA0; --purple-tint:#E4E0F4; --orange:#E86A1A; --orange-tint:#FCE4D4;
+  --paper:#FFFFFF; --ink:#1A0E50; --muted:#5C5478; --card:#FFFFFF; --line:#D9D0BC;
+  --soft:#F3F3F3; --forest:#1C4A3A; --leaf:#6E9B5E; --alert:#C0492F; --alert-bg:#FBEEEA;
+  --alert-border:#E6B3A6; --warn-bg:#FAEEDA; --warn-border:#FAC775;
+  font-family:'Outfit',sans-serif;color:var(--ink);
+}
+.scc-doc .ml{font-family:'Noto Sans Malayalam',sans-serif;}
+.scc-doc .page{position:relative;width:100%;max-width:210mm;background:#FFFFFF;padding:14mm 15mm 22mm;margin:0 auto 18px;box-shadow:0 2px 12px rgba(0,0,0,.10);border:1px solid var(--line);border-radius:4px;}
+.scc-doc .doc-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid var(--orange);padding-bottom:11px;margin-bottom:20px;}
+.scc-doc .brand-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:var(--purple);line-height:1;}
+.scc-doc .brand-logo span{color:var(--orange);}
+.scc-doc .brand-tagline{font-family:'Noto Sans Malayalam',sans-serif;font-size:10px;color:var(--muted);margin-top:4px;}
+.scc-doc .doc-meta{text-align:right;font-size:11px;line-height:1.7;color:var(--muted);}
+.scc-doc .doc-meta b{color:var(--ink);}
+.scc-doc .page-label{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;color:var(--purple);letter-spacing:-.3px;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.scc-doc .page-label::after{content:'';flex:1;height:1.5px;background:var(--purple-tint);}
+.scc-doc .sec{margin-bottom:20px;}
+.scc-doc .sec-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.scc-doc .sec-title::after{content:'';flex:1;height:1px;background:var(--line);}
+.scc-doc .clinical-picture{background:var(--card);border:1px solid var(--line);border-left:3.5px solid var(--purple);border-radius:0 10px 10px 0;padding:13px 16px;font-size:12px;line-height:1.7;}
+.scc-doc .missing-bar{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+.scc-doc .missing-bar .warn-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.scc-doc .missing-bar b{color:#854F0B;}
+.scc-doc .flags-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.scc-doc .flag-box{background:var(--alert-bg);border:1px solid var(--alert-border);border-radius:10px;padding:11px 13px;font-size:11px;line-height:1.5;color:#4a4536;}
+.scc-doc .flag-label{font-size:10px;font-weight:700;color:var(--alert);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px;}
+.scc-doc .deviations{background:#F3F3F3;border-radius:10px;padding:12px 16px;font-size:11px;line-height:1.9;columns:2;column-gap:20px;}
+.scc-doc .deviations li{list-style:none;padding-left:13px;position:relative;break-inside:avoid;}
+.scc-doc .deviations li::before{content:'•';color:var(--orange);font-weight:700;position:absolute;left:0;}
+.scc-doc .rx-table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0;}
+.scc-doc .rx-table th{background:var(--purple);color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
+.scc-doc .rx-table td{padding:9px 10px;border-bottom:1px solid #F3F3F3;vertical-align:top;line-height:1.45;}
+.scc-doc .rx-table tr:last-child td{border-bottom:none;}
+.scc-doc .rx-table tr:nth-child(even) td{background:#F8F8F8;}
+.scc-doc .drug-name{font-weight:700;color:var(--ink);}
+.scc-doc .drug-brand{font-weight:400;color:var(--muted);font-size:10px;}
+.scc-doc .drug-dose{color:var(--purple);font-weight:600;}
+.scc-doc .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:600;white-space:nowrap;}
+.scc-doc .badge-jan{background:#EAF3DE;color:#3B6D11;}
+.scc-doc .badge-generic{background:var(--purple-tint);color:var(--purple);}
+.scc-doc .badge-brand{background:var(--warn-bg);color:#854F0B;}
+.scc-doc .special-inst{background:var(--card);border:1px dashed var(--leaf);border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.55;margin-top:10px;display:flex;gap:10px;align-items:flex-start;}
+.scc-doc .monitoring{margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.scc-doc .mon-item{background:#F3F3F3;border-radius:7px;padding:7px 8px;font-size:10px;color:var(--ink);line-height:1.4;text-align:center;}
+.scc-doc .sig-block{margin-top:20px;display:flex;justify-content:flex-end;}
+.scc-doc .sig-inner{text-align:center;font-size:10px;color:var(--muted);}
+.scc-doc .sig-line{border-top:1px solid var(--ink);width:180px;padding-top:5px;}
+.scc-doc .care-header{text-align:center;padding-bottom:14px;border-bottom:2.5px solid var(--orange);margin-bottom:0;}
+.scc-doc .care-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:var(--purple);line-height:1;}
+.scc-doc .care-logo span{color:var(--orange);}
+.scc-doc .care-tagline{font-family:'Noto Sans Malayalam',sans-serif;font-size:11px;color:var(--muted);margin-top:4px;}
+.scc-doc .patient-strip{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--purple);border-radius:12px;margin:14px 0;color:#fff;}
+.scc-doc .ps-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;}
+.scc-doc .ps-meta{font-size:11px;opacity:.8;margin-top:2px;}
+.scc-doc .ps-right{text-align:right;font-size:11px;opacity:.85;line-height:1.6;}
+.scc-doc .summary-bar{background:#fff;border:1px solid var(--line);border-left:3.5px solid var(--purple);border-radius:0 10px 10px 0;padding:10px 14px;font-size:11px;line-height:1.6;margin-bottom:14px;}
+.scc-doc .cc-sec-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:9px;}
+.scc-doc .cc-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.scc-doc .cc-num-ml{font-family:'Noto Sans Malayalam',sans-serif;font-size:11px;color:var(--muted);font-weight:400;}
+.scc-doc .med-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:16px;}
+.scc-doc .med-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
+.scc-doc .med-card .med-name{font-weight:700;font-size:12px;color:var(--ink);line-height:1.2;}
+.scc-doc .med-card .med-dose{font-size:13px;font-weight:800;color:var(--purple);font-family:'Bricolage Grotesque',sans-serif;}
+.scc-doc .med-card .med-when{font-size:10px;color:var(--muted);}
+.scc-doc .med-warn{background:var(--orange-tint);border-radius:8px;padding:7px 11px;font-size:10.5px;color:#7a3010;margin-bottom:16px;line-height:1.4;}
+.scc-doc .nutrition-section{margin-bottom:16px;}
+.scc-doc .kcal-hero{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:16px;margin-bottom:8px;}
+.scc-doc .kcal-donut{flex-shrink:0;position:relative;}
+.scc-doc .kcal-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.scc-doc .kcal-num{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;color:var(--orange);line-height:1;}
+.scc-doc .kcal-unit{font-size:8px;color:var(--muted);display:block;}
+.scc-doc .macro-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex:1;}
+.scc-doc .macro-card{background:#F3F3F3;border-radius:10px;padding:9px 10px;text-align:center;}
+.scc-doc .macro-card .m-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.scc-doc .macro-card .m-value{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;line-height:1;}
+.scc-doc .macro-card .m-sub{font-size:9px;color:var(--muted);margin-top:2px;}
+.scc-doc .kerala-list{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;}
+.scc-doc .kerala-list .kl-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
+.scc-doc .kerala-list ul{list-style:none;font-size:11px;line-height:1;}
+.scc-doc .kerala-list ul li{padding:5px 0;border-bottom:1px solid #F3F3F3;display:flex;align-items:center;gap:8px;}
+.scc-doc .kerala-list ul li:last-child{border-bottom:none;}
+.scc-doc .kerala-list ul li::before{content:'→';color:var(--orange);font-weight:700;font-size:10px;flex-shrink:0;}
+.scc-doc .hydration-note{margin-top:7px;font-size:11px;color:var(--forest);font-weight:500;display:flex;align-items:center;gap:6px;}
+.scc-doc .lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.scc-doc .lower-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+.scc-doc .exercise-content{font-size:11.5px;line-height:1.55;}
+.scc-doc .exercise-big{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:var(--purple);line-height:1;margin:8px 0 4px;}
+.scc-doc .exercise-big span{font-size:12px;font-weight:400;color:var(--muted);}
+.scc-doc .exercise-sub{font-size:10px;color:var(--muted);line-height:1.5;}
+.scc-doc .goal-cards{display:flex;flex-direction:column;gap:6px;}
+.scc-doc .goal-row{display:flex;align-items:center;justify-content:space-between;background:#F3F3F3;border-radius:8px;padding:7px 10px;}
+.scc-doc .goal-row .g-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.scc-doc .goal-row .g-value{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--purple);}
+.scc-doc .goal-row .g-ml{font-family:'Noto Sans Malayalam',sans-serif;font-size:9.5px;color:var(--orange);}
+.scc-doc .next-visit-bar{background:var(--purple);color:#fff;border-radius:10px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:12px;gap:10px;}
+.scc-doc .nv-type{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;}
+.scc-doc .nv-date{color:#FFD580;font-weight:700;font-size:13px;}
+.scc-doc .nv-note{font-size:10px;opacity:.75;}
+.scc-doc .tracker{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;}
+.scc-doc .tracker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+.scc-doc .tracker-head b{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;}
+.scc-doc .tracker-head .bring{color:var(--orange);font-weight:600;font-size:10px;}
+.scc-doc .log-row{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
+.scc-doc .log-cell{border:1px solid var(--line);border-radius:9px;padding:8px 4px 6px;text-align:center;}
+.scc-doc .day-label{font-weight:700;color:var(--ink);font-size:10px;display:block;margin-bottom:14px;}
+.scc-doc .write-line{border-bottom:1px solid var(--line);height:1px;margin:0 6px;}
+.scc-doc .log-hint{text-align:center;font-size:9px;color:var(--muted);margin-top:7px;}
+.scc-doc .doc-footer{position:static;margin-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:8.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:7px;}
+.scc-doc .doc-footer b{color:var(--ink);}
+.scc-doc .doc-footer .disc{font-style:italic;text-align:right;max-width:55%;}
 </style>
 </head>
 <body>
@@ -886,18 +950,26 @@ function renderOutput(targetId, data, patient) {
   ].join('');
 
   el.innerHTML = `
+    <div class="out-selector no-print">
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="context"  checked onchange="toggleOutSection(this,'${targetId}','context')"> Clinical Context (internal)</label>
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="rx"       checked onchange="toggleOutSection(this,'${targetId}','rx')"> Prescription</label>
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="carecard" checked onchange="toggleOutSection(this,'${targetId}','carecard')"> Patient Care Card</label>
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="diet"     checked onchange="toggleOutSection(this,'${targetId}','diet')"> Diet Plan</label>
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="exercise" checked onchange="toggleOutSection(this,'${targetId}','exercise')"> Exercise</label>
+      <label class="out-cb-lbl"><input type="checkbox" class="out-cb" data-key="followup" checked onchange="toggleOutSection(this,'${targetId}','followup')"> Follow-up</label>
+    </div>
     <div class="out-tabs no-print">
-      <button class="out-tab active" onclick="switchOut(this,0)">Context</button>
-      <button class="out-tab" onclick="switchOut(this,1)">Prescription</button>
-      <button class="out-tab" onclick="switchOut(this,2)">Diet</button>
-      <button class="out-tab" onclick="switchOut(this,3)">Exercise</button>
-      <button class="out-tab" onclick="switchOut(this,4)">Follow-up</button>
-      <button class="out-tab" onclick="switchOut(this,5)">Care Card</button>
+      <button class="out-tab active" data-key="context"  onclick="switchOut(this)">Context</button>
+      <button class="out-tab"        data-key="rx"        onclick="switchOut(this)">Prescription</button>
+      <button class="out-tab"        data-key="carecard"  onclick="switchOut(this)">Care Card</button>
+      <button class="out-tab"        data-key="diet"      onclick="switchOut(this)">Diet</button>
+      <button class="out-tab"        data-key="exercise"  onclick="switchOut(this)">Exercise</button>
+      <button class="out-tab"        data-key="followup"  onclick="switchOut(this)">Follow-up</button>
     </div>
     <div class="out-panel">
 
-      <!-- 0: Context -->
-      <div class="out-content active" id="${targetId}_0">
+      <!-- Context (internal, screen reference) -->
+      <div class="out-content active" id="${targetId}_context">
         ${headerHTML}
         <div class="out-section-title">Summary</div>
         <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
@@ -908,8 +980,8 @@ function renderOutput(targetId, data, patient) {
         <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
       </div>
 
-      <!-- 1: Prescription -->
-      <div class="out-content" id="${targetId}_1">
+      <!-- Prescription (screen reference) -->
+      <div class="out-content" id="${targetId}_rx">
         ${headerHTML}
         <div class="out-rx-symbol">℞</div>
         <table class="out-med-table"><thead><tr><th>#</th><th>Drug</th><th>Dose</th><th>Frequency</th><th>Instructions</th><th>Cost</th></tr></thead><tbody>${rxMedsHTML || '<tr><td colspan="6">No medications</td></tr>'}</tbody></table>
@@ -919,43 +991,49 @@ function renderOutput(targetId, data, patient) {
         <div class="out-disclaimer">For use as prescribed. Verify all drug data with CIMS India before dispensing.<br>SugarCARE · HomoRx Healthtech</div>
       </div>
 
-      <!-- 2: Diet -->
-      <div class="out-content" id="${targetId}_2">
+      <!-- Care Card — 3-page print document (Context · Prescription · Patient Care Card) -->
+      <div class="out-content" id="${targetId}_carecard">
+        ${renderPrintPages(data, patient)}
+      </div>
+
+      <!-- Diet (screen-only reference) -->
+      <div class="out-content" id="${targetId}_diet">
         ${headerHTML}
         <div class="out-section-title">Diet Plan${diet.targetCalories ? ' — ' + esc(diet.targetCalories) + ' kcal/day' : ''}</div>
         ${macroLine ? '<p style="font-size:0.85rem;color:var(--text-sec);">'+macroLine+'</p>' : ''}
+        ${diet.mealPlan && diet.mealPlan.length ? '<div class="out-section-title">Meal Plan</div><ul class="out-bullets">'+li(diet.mealPlan)+'</ul>' : ''}
         ${diet.keralaMeals && diet.keralaMeals.length ? '<div class="out-section-title">Kerala Food Swaps</div><ul class="out-bullets">'+li(diet.keralaMeals)+'</ul>' : ''}
+        ${diet.avoid && diet.avoid.length ? '<div class="out-section-title">Avoid</div><ul class="out-bullets warning">'+li(diet.avoid)+'</ul>' : ''}
         ${diet.hydration ? '<p style="font-size:0.88rem;"><strong>Hydration:</strong> '+esc(diet.hydration)+'</p>' : ''}
         <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
       </div>
 
-      <!-- 3: Exercise -->
-      <div class="out-content" id="${targetId}_3">
+      <!-- Exercise (screen-only reference) -->
+      <div class="out-content" id="${targetId}_exercise">
         ${headerHTML}
         <div class="out-section-title">Exercise</div>
         <p style="font-size:0.95rem;font-weight:600;">${exLine || '—'}</p>
+        ${ex.progression ? '<div class="out-section-title">Progression</div><p style="font-size:0.88rem;">'+esc(ex.progression)+'</p>' : ''}
+        ${ex.restrictions && ex.restrictions.length ? '<div class="out-section-title">Restrictions</div><ul class="out-bullets warning">'+li(ex.restrictions)+'</ul>' : ''}
         <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
       </div>
 
-      <!-- 4: Follow-up -->
-      <div class="out-content" id="${targetId}_4">
+      <!-- Follow-up (screen-only reference) -->
+      <div class="out-content" id="${targetId}_followup">
         ${headerHTML}
         <div class="out-section-title">Next Visit</div>
         <p style="font-size:0.88rem;">${esc(fup.nextVisitType || '—')}${fup.nextVisitDate ? ' — ' + esc(fup.nextVisitDate) : ''}</p>
         ${fup.nextVisitFocus && fup.nextVisitFocus.length ? '<div class="out-section-title">Next Visit Focus</div><ul class="out-bullets">'+li(fup.nextVisitFocus)+'</ul>' : ''}
         ${targetRows ? '<div class="out-section-title">Targets by Next Visit</div><table class="out-med-table"><thead><tr><th>Parameter</th><th>Target</th></tr></thead><tbody>'+targetRows+'</tbody></table>' : ''}
+        ${fup.warningSignsToReturn && fup.warningSignsToReturn.length ? '<div class="out-section-title">Warning Signs to Return</div><ul class="out-bullets warning">'+li(fup.warningSignsToReturn)+'</ul>' : ''}
         <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- 5: Care Card — patient-facing warm-paper card -->
-      <div class="out-content" id="${targetId}_5">
-        ${renderCareCard(data, patient)}
       </div>
 
       <div class="out-actions no-print">
         <button class="btn btn-outline btn-sm" onclick="copyOut('${targetId}')">Copy</button>
         <button class="btn btn-outline btn-sm" onclick="printOut('${targetId}')">Print This</button>
-        <button class="btn btn-purple btn-sm" onclick="printAll('${targetId}')">Print All</button>
+        <button class="btn btn-purple btn-sm" onclick="printSelected('${targetId}')">🖨 Print Selected</button>
+        <button class="btn btn-ghost btn-sm" disabled title="Coming soon — DM Pro integration pending">Save to DM Pro</button>
       </div>
     </div>`;
 
@@ -963,172 +1041,222 @@ function renderOutput(targetId, data, patient) {
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function renderCareCard(data, patient) {
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T00:00:00');
+  if (isNaN(d.getTime())) return esc(s);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+// Splits "Generic (Brand)" → { name, brand }. Returns brand '' if no parentheses.
+function splitDrug(s) {
+  const m = (s || '').match(/^(.*?)\s*\((.*)\)\s*$/);
+  return m ? { name: m[1], brand: m[2] } : { name: s || '', brand: '' };
+}
+
+// Builds the 3-page A4 print document (Clinical Summary · Prescription · Patient Care Card)
+// using the v3-white design system. Pages are tagged data-pp so printSelected() can filter them.
+function renderPrintPages(data, patient) {
   const ctx  = data.context || {};
   const rx   = data.idealPrescription || {};
   const diet = data.idealDiet || {};
   const ex   = data.idealExercise || {};
   const fup  = data.idealFollowUpPlan || {};
   const macros = diet.macros || {};
-  const dr = cfg('doctor'), cl = cfg('clinic');
+  const dr = cfg('doctor'), cl = cfg('clinic'), reg = cfg('regNo');
+  const clinicName = cl ? 'SugarCARE ' + esc(cl) : 'SugarCARE';
   const today = patient.date || new Date().toISOString().split('T')[0];
-  const pLine = [patient.name ? esc(patient.name) : '', patient.age ? patient.age + 'y' : '', patient.gender ? esc(patient.gender) : ''].filter(Boolean).join(' · ');
+  const niceDate = fmtDate(today);
+  const ageGender = (patient.age ? esc(patient.age) : '') + (patient.gender ? esc(patient.gender) : '');
+  const visit = esc(patient.visitType || '');
+  const pName = patient.name ? esc(patient.name) : 'Patient';
+  const TAG = 'കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ';
 
-  // SVG donut — circumference of r=15.9 ≈ 100, so percentages map directly to dasharray values
+  const metaBlock = `${dr ? esc(dr) + ' · ' : ''}${clinicName}<br>${[ageGender, visit, niceDate].filter(Boolean).join(' · ')}`;
+  const docHeader = extra => `<div class="doc-header"><div><div class="brand-logo">Sugar<span>CARE</span></div><div class="brand-tagline ml">${TAG}</div></div><div class="doc-meta">${extra || ''}${metaBlock}</div></div>`;
+
+  /* ── PAGE 1 — Clinical Summary & Context ── */
+  const missing = (ctx.missingData || []).map(x => esc(x)).join(' &nbsp;·&nbsp; ');
+  const flags = (ctx.redFlags || []).map(rf => `<div class="flag-box"><div class="flag-label">⚠ Flag</div>${esc(rf)}</div>`).join('');
+  const devs = (ctx.deviations || []).map(d => `<li>${esc(d)}</li>`).join('');
+  const page1 = `<div class="page" data-pp="context">
+    ${docHeader('<div><b>Internal Clinical Record</b></div>')}
+    <div class="page-label">Clinical Summary &amp; Context</div>
+    <div class="sec"><div class="sec-title">Clinical Picture</div><div class="clinical-picture">${esc(ctx.summary) || '—'}</div></div>
+    ${missing ? `<div class="sec"><div class="sec-title">Missing Data — Collect at Next Visit</div><div class="missing-bar"><span class="warn-icon">⚠</span><div><b>Not yet collected:</b>&nbsp; ${missing}</div></div></div>` : ''}
+    ${flags ? `<div class="sec"><div class="sec-title">🚨 Red Flags</div><div class="flags-grid">${flags}</div></div>` : ''}
+    ${devs ? `<div class="sec"><div class="sec-title">Deviations from Target</div><ul class="deviations">${devs}</ul></div>` : ''}
+    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Private Limited · 799 4884 799</div><div class="disc">Internal clinical record — not for patient use.</div></div>
+  </div>`;
+
+  /* ── PAGE 2 — Prescription ── */
+  const rxRows = (rx.medications || []).map(m => {
+    const t = (m.costTier || '').toLowerCase();
+    const bc = t.includes('jan') ? 'badge-jan' : t.includes('brand') ? 'badge-brand' : 'badge-generic';
+    const d = splitDrug(m.drug);
+    return `<tr><td><div class="drug-name">${esc(d.name)}</div>${d.brand ? `<div class="drug-brand">${esc(d.brand)}</div>` : ''}</td><td class="drug-dose">${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.instructions)}</td><td><span class="badge ${bc}">${esc(m.costTier || 'Generic')}</span></td></tr>`;
+  }).join('');
+  const monIt = (rx.monitoringParameters || []).map(p => `<div class="mon-item">${esc(p)}</div>`).join('');
+  const page2 = `<div class="page" data-pp="rx">
+    ${docHeader('')}
+    <div class="page-label">℞ Prescription</div>
+    <table class="rx-table"><thead><tr><th style="width:26%">Medicine</th><th style="width:11%">Dose</th><th style="width:22%">When</th><th>Instructions</th><th style="width:11%">Cost</th></tr></thead><tbody>${rxRows || '<tr><td colspan="5">No medications</td></tr>'}</tbody></table>
+    ${rx.specialInstructions ? `<div class="special-inst"><span style="color:var(--leaf);font-size:16px;">✓</span><span><b>Special instructions:</b> ${esc(rx.specialInstructions)}</span></div>` : ''}
+    ${monIt ? `<div class="sec" style="margin-top:18px;"><div class="sec-title">Monitoring Parameters</div><div class="monitoring">${monIt}</div></div>` : ''}
+    <div class="sig-block"><div class="sig-inner"><div class="sig-line">Signature of Prescriber</div><div style="margin-top:3px;">${reg ? 'Reg No: ' + esc(reg) + ' · ' : ''}Date: ${esc(niceDate)}</div></div></div>
+    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Pvt Ltd · 799 4884 799</div><div class="disc">For use as prescribed. Verify all drug data with CIMS India before dispensing.</div></div>
+  </div>`;
+
+  /* ── PAGE 3 — Patient Care Card (nutrition-app style) ── */
   const c = +(macros.carbsPercent||0), p = +(macros.proteinPercent||0), f = +(macros.fatPercent||0);
   const tot = c + p + f;
-  const donutPaths = tot > 0
-    ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="4.2" stroke-dasharray="${(c/tot*100).toFixed(1)} ${(100-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="4.2" stroke-dasharray="${(p/tot*100).toFixed(1)} ${(100-p/tot*100).toFixed(1)}" stroke-dashoffset="${(-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="4.2" stroke-dasharray="${(f/tot*100).toFixed(1)} ${(100-f/tot*100).toFixed(1)}" stroke-dashoffset="${(-(c+p)/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="9" fill="#FFFDF8"/>`
-    : `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#D9D0BC" stroke-width="4.2"/><circle cx="18" cy="18" r="9" fill="#FFFDF8"/>`;
-
-  // Medicines table
-  const meds = (rx.medications || []).map(m => {
-    const t = (m.costTier || '').toLowerCase();
-    const bc = t.includes('jan') ? 'cc-badge-green' : t.includes('brand') ? 'cc-badge-amber' : 'cc-badge-blue';
-    return `<tr>
-      <td><strong>${esc(m.drug)}</strong><br><span style="font-weight:400;color:#64648C;font-size:10px">${esc(m.dose)}</span></td>
-      <td>${esc(m.frequency)}</td>
-      <td style="font-size:10px">${esc(m.instructions)}</td>
-      <td><span class="cc-badge ${bc}">${esc(m.costTier || 'Generic')}</span></td>
-    </tr>`;
+  const cal = +(diet.targetCalories||0);
+  const grams = (pct, perGram) => (cal && pct) ? Math.round(cal*pct/100/perGram) : 0;
+  const donut = tot > 0
+    ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F3F3" stroke-width="4.5"/>
+       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="4.5" stroke-dasharray="${(c/tot*100).toFixed(1)} ${(100-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
+       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="4.5" stroke-dasharray="${(p/tot*100).toFixed(1)} ${(100-p/tot*100).toFixed(1)}" stroke-dashoffset="${(-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
+       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="4.5" stroke-dasharray="${(f/tot*100).toFixed(1)} ${(100-f/tot*100).toFixed(1)}" stroke-dashoffset="${(-(c+p)/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
+       <circle cx="18" cy="18" r="10" fill="#fff"/>`
+    : `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F3F3" stroke-width="4.5"/><circle cx="18" cy="18" r="10" fill="#fff"/>`;
+  const medCards = (rx.medications || []).map(m => {
+    const d = splitDrug(m.drug);
+    const name = d.brand ? `${esc(d.name)} <span style="color:var(--muted);font-weight:400;font-size:10px;">(${esc(d.brand)})</span>` : esc(d.name);
+    return `<div class="med-card"><div class="med-name">${name}</div><div class="med-dose">${esc(m.dose)}</div><div class="med-when">${esc(m.frequency)}</div></div>`;
   }).join('');
+  const kerala = (diet.keralaMeals || []).map(k => `<li>${esc(k)}</li>`).join('');
+  const exMin = ex.minutesPerDay ? esc(ex.minutesPerDay) : '—';
+  const exFreq = [ex.type ? esc(ex.type) : '', ex.daysPerWeek ? esc(ex.daysPerWeek) + ' days/week' : ''].filter(Boolean).join(' · ');
+  const exSub = [ex.progression ? esc(ex.progression) : '', ...(ex.restrictions||[]).map(r=>esc(r))].filter(Boolean).join('<br>');
+  const tg = fup.targetsByNextVisit || {};
+  const goals = [];
+  if (tg.hba1c)  goals.push(['HbA1c','ഷുഗർ ടാർഗറ്റ്', tg.hba1c]);
+  if (tg.weight) goals.push(['Weight','ഭാരം', tg.weight]);
+  if (tg.bp)     goals.push(['Blood Pressure','രക്തസമ്മർദ്ദം', tg.bp]);
+  (tg.other||[]).forEach(o => goals.push(['Target','', o]));
+  const goalRows = goals.slice(0,4).map(([l,ml,v]) => `<div class="goal-row"><div><div class="g-label">${esc(l)}</div>${ml ? `<div class="g-ml ml">${ml}</div>` : ''}</div><div class="g-value">${esc(v)}</div></div>`).join('');
+  const focusNote = (fup.nextVisitFocus||[]).map(x=>esc(x)).join(' · ');
 
-  // Missing data amber bar
-  const missingHTML = ctx.missingData && ctx.missingData.length
-    ? `<div class="cc-missing">⚠ Missing: ${ctx.missingData.map(x => esc(x)).join(' · ')}</div>` : '';
+  const page3 = `<div class="page page-carecard" data-pp="carecard">
+    <div class="care-header"><div class="care-logo">Sugar<span>CARE</span></div><div class="care-tagline ml">${TAG}</div></div>
+    <div class="patient-strip"><div><div class="ps-name">${pName}</div><div class="ps-meta">${[visit, ageGender].filter(Boolean).join(' · ')}</div></div><div class="ps-right">${esc(niceDate)}<br>${dr ? esc(dr) + ' · ' : ''}${clinicName}</div></div>
+    <div class="summary-bar">${esc(ctx.summary) || '—'}</div>
 
-  // Red flags
-  const redFlagHTML = ctx.redFlags && ctx.redFlags.length
-    ? `<div class="cc-redflag-grid">${ctx.redFlags.map(rf => `<div class="cc-redflag-box"><div class="cc-lbl">⚠ Red Flag</div><div>${esc(rf)}</div></div>`).join('')}</div>` : '';
+    <div class="cc-sec-title"><div class="cc-num">1</div>Your Medicines<span class="cc-num-ml ml">നിങ്ങളുടെ മരുന്നുകൾ</span></div>
+    <div class="med-grid">${medCards || '<div class="med-card"><div class="med-name">No medications listed</div></div>'}</div>
+    ${rx.specialInstructions ? `<div class="med-warn">⚠ ${esc(rx.specialInstructions)}</div>` : ''}
 
-  // Kerala meals clean list
-  const mealsHTML = (diet.keralaMeals || []).map(m => `<li>${esc(m)}</li>`).join('');
-
-  // Exercise
-  const exLine = [
-    ex.type ? esc(ex.type) : '',
-    ex.minutesPerDay ? esc(ex.minutesPerDay) + ' min/day' : '',
-    ex.daysPerWeek ? esc(ex.daysPerWeek) + ' days/week' : '',
-    ex.weeklyMinutes ? '(' + esc(ex.weeklyMinutes) + ' min/week)' : ''
-  ].filter(Boolean).join(' · ');
-
-  // Goals — purple gradient tcard × 3
-  const targets = fup.targetsByNextVisit || {};
-  const goalPairs = [];
-  if (targets.hba1c)  goalPairs.push(['HbA1c', targets.hba1c]);
-  if (targets.weight) goalPairs.push(['Weight', targets.weight]);
-  if (targets.bp)     goalPairs.push(['BP', targets.bp]);
-  (targets.other || []).forEach(o => goalPairs.push(['Target', o]));
-  while (goalPairs.length < 3) goalPairs.push(['—', '—']);
-  const goalHTML = goalPairs.slice(0, 3).map(([when, goal]) =>
-    `<div class="cc-tcard"><div class="cc-when">${esc(when)}</div><div class="cc-goal"><b>${esc(goal)}</b></div></div>`
-  ).join('');
-
-  // Special instructions dashed hint box
-  const siHTML = rx.specialInstructions
-    ? `<div class="cc-hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4A2FA0" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg><span>${esc(rx.specialInstructions)}</span></div>` : '';
-
-  return `<div class="cc-wrap">
-    <div class="cc-header">
-      <div class="cc-brand"><h1>Sugar<span>CARE</span></h1><div class="cc-tagline">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div></div>
-      <div class="cc-meta"><strong>${pLine || 'Patient'}</strong><br>${esc(patient.visitType || '')}${today ? ' · ' + esc(today) : ''}<br>${dr ? esc(dr) : ''}${cl ? ' · SugarCARE ' + esc(cl) : ''}</div>
-    </div>
-    <div class="cc-clinical"><strong>Clinical Picture:</strong> ${esc(ctx.summary) || '—'}${missingHTML}${redFlagHTML}</div>
-    <div class="cc-sec">
-      <div class="cc-sec-head"><span class="cc-sec-num">1</span><h3>Your Medicines</h3></div>
-      <table class="cc-med-table">
-        <thead><tr><th>Medicine · Dose</th><th>When</th><th>Instructions</th><th>Cost</th></tr></thead>
-        <tbody>${meds || '<tr><td colspan="4" style="color:#64648C;font-style:italic">No medications listed</td></tr>'}</tbody>
-      </table>${siHTML}
-    </div>
-    <div class="cc-sec">
-      <div class="cc-sec-head"><span class="cc-sec-num">2</span><h3>Your Food Plan</h3></div>
-      <div class="cc-food-grid">
-        <div class="cc-donut-wrap">
-          <div class="cc-donut"><svg viewBox="0 0 36 36" width="110" height="110">${donutPaths}</svg></div>
-          ${diet.targetCalories ? `<div class="cc-cal">${esc(diet.targetCalories)} kcal/day</div>` : ''}
-          <div class="cc-legend">
-            <div><span class="cc-sw" style="background:#E86A1A"></span>Carbs${c ? ' ' + c + '%' : ''}</div>
-            <div><span class="cc-sw" style="background:#4A2FA0"></span>Protein${p ? ' ' + p + '%' : ''}</div>
-            <div><span class="cc-sw" style="background:#6E9B5E"></span>Fat${f ? ' ' + f + '%' : ''}</div>
-          </div>
-        </div>
-        <div>
-          ${mealsHTML ? `<ul class="cc-meal-list">${mealsHTML}</ul>` : ''}
-          ${diet.hydration ? `<div class="cc-hydration">💧 ${esc(diet.hydration)}</div>` : ''}
+    <div class="cc-sec-title"><div class="cc-num">2</div>Your Food Plan<span class="cc-num-ml ml">ഭക്ഷണ ക്രമം</span></div>
+    <div class="nutrition-section">
+      <div class="kcal-hero">
+        <div class="kcal-donut"><svg viewBox="0 0 36 36" width="88" height="88">${donut}</svg><div class="kcal-center"><div class="kcal-num">${cal||'—'}</div><span class="kcal-unit">kcal</span></div></div>
+        <div class="macro-cards">
+          <div class="macro-card"><div class="m-label">Carbs</div><div class="m-value" style="color:#6E9B5E;">${c?c+'%':'—'}</div><div class="m-sub">${grams(c,4)?grams(c,4)+'g/day':''}</div></div>
+          <div class="macro-card"><div class="m-label">Protein</div><div class="m-value" style="color:var(--orange);">${p?p+'%':'—'}</div><div class="m-sub">${grams(p,4)?grams(p,4)+'g/day':''}</div></div>
+          <div class="macro-card"><div class="m-label">Fat</div><div class="m-value" style="color:var(--purple);">${f?f+'%':'—'}</div><div class="m-sub">${grams(f,9)?grams(f,9)+'g/day':''}</div></div>
         </div>
       </div>
+      ${kerala ? `<div class="kerala-list"><div class="kl-title">Kerala Food Guide</div><ul>${kerala}</ul></div>` : ''}
+      ${diet.hydration ? `<div class="hydration-note">💧 ${esc(diet.hydration)}</div>` : ''}
     </div>
-    <div class="cc-sec">
-      <div class="cc-sec-head"><span class="cc-sec-num">3</span><h3>Your Exercise</h3></div>
-      <div class="cc-ex-panel">
-        <div class="cc-ex-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M11 7l-2 4 3 2 1 6"/><path d="M12 13l-4 1-2 5"/><path d="M14 8l3 1 2 3"/></svg></div>
-        <div>
-          <div class="cc-ex-text">${exLine || '—'}</div>
-          ${ex.progression ? `<div class="cc-ex-prog">Progression: ${esc(ex.progression)}</div>` : ''}
-          ${ex.restrictions && ex.restrictions.length ? `<div class="cc-ex-prog">Avoid: ${ex.restrictions.map(r => esc(r)).join(', ')}</div>` : ''}
+
+    <div class="lower-grid">
+      <div class="lower-card">
+        <div class="cc-sec-title" style="margin-bottom:8px;"><div class="cc-num">3</div>Exercise<span class="cc-num-ml ml">വ്യായാമം</span></div>
+        <div class="exercise-content">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Daily target</div>
+          <div class="exercise-big">${exMin} <span>min/day</span></div>
+          ${exFreq ? `<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;">${exFreq}</div>` : ''}
+          ${exSub ? `<div class="exercise-sub">${exSub}</div>` : ''}
         </div>
       </div>
-    </div>
-    <div class="cc-sec">
-      <div class="cc-sec-head"><span class="cc-sec-num">4</span><h3>Your Goals — What we are aiming for</h3></div>
-      <div class="cc-targets">${goalHTML}</div>
-      ${fup.nextVisitType ? `<div class="cc-visit">Next visit: <strong style="color:#4A2FA0">${esc(fup.nextVisitType)}</strong>${fup.nextVisitDate ? ' · ' + esc(fup.nextVisitDate) : ''}</div>` : ''}
-    </div>
-    <div class="cc-tracker">
-      <div class="cc-tracker-head">
-        <h4>Daily log — write your fasting sugar reading</h4>
-        <span class="cc-note">Bring this card to your next visit</span>
+      <div class="lower-card">
+        <div class="cc-sec-title" style="margin-bottom:8px;"><div class="cc-num">4</div>Your Goals<span class="cc-num-ml ml">ലക്ഷ്യം</span></div>
+        <div class="goal-cards">${goalRows || '<div class="goal-row"><div class="g-label">—</div></div>'}</div>
       </div>
-      <div class="cc-logrow">${['Day 1','Day 2','Day 3','Day 5','Day 7'].map(d => `<div class="cc-logcell"><span class="cc-wk">${d}</span></div>`).join('')}</div>
     </div>
-    <div class="cc-footer">
-      <div><strong>SugarCARE Clinics</strong> · 799 4884 799${cl ? ' · ' + esc(cl) : ''}</div>
-      <div class="cc-disc">Clinical decision support only. Prescriber judgement is final.</div>
+
+    ${fup.nextVisitType ? `<div class="next-visit-bar"><div><div style="font-size:10px;opacity:.75;margin-bottom:2px;">Next visit</div><div class="nv-type">${esc(fup.nextVisitType)}</div></div>${fup.nextVisitDate ? `<div class="nv-date">${esc(fup.nextVisitDate)}</div>` : ''}${focusNote ? `<div class="nv-note">Bring: ${focusNote}</div>` : ''}</div>` : ''}
+
+    <div class="tracker">
+      <div class="tracker-head"><b>Daily log — write your fasting sugar reading</b><span class="bring">★ Bring this card next visit</span></div>
+      <div class="log-row">${['Day 1','Day 2','Day 3','Day 5','Day 7'].map(d => `<div class="log-cell"><span class="day-label">${d}</span><div class="write-line"></div></div>`).join('')}</div>
+      <div class="log-hint ml">ഷുഗർ വായന ഓരോ ദിവസവും ഇവിടെ എഴുതുക · ഈ കാർഡ് അടുത്ത സന്ദർശനത്തിൽ കൊണ്ടുവരുക</div>
     </div>
+
+    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · 799 4884 799${cl ? ' · ' + esc(cl) : ''}</div><div class="disc">Clinical decision support only. Prescriber judgement is final.</div></div>
   </div>`;
+
+  return `<div class="scc-doc">${page1}${page2}${page3}</div>`;
 }
 
-function switchOut(btn, i) {
+function switchOut(btn) {
   const panel = btn.closest('.output-section');
-  panel.querySelectorAll('.out-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  const tabs = [...panel.querySelectorAll('.out-tab')];
+  const i = tabs.indexOf(btn);
+  if (i < 0) return;
+  tabs.forEach((t,j) => t.classList.toggle('active', j===i));
   panel.querySelectorAll('.out-content').forEach((c,j) => c.classList.toggle('active', j===i));
 }
 
-function getActiveOutIndex(targetId) {
-  const el = document.getElementById(targetId);
-  const tabs = el.querySelectorAll('.out-content');
-  for (let i = 0; i < tabs.length; i++) { if (tabs[i].classList.contains('active')) return i; }
-  return 0;
+// Show/hide a section's tab via its checkbox; if the active tab is hidden, jump to the first visible one.
+function toggleOutSection(cb, targetId, key) {
+  const panel = document.getElementById(targetId);
+  const tabBtn = panel.querySelector(`.out-tab[data-key="${key}"]`);
+  if (!tabBtn) return;
+  tabBtn.style.display = cb.checked ? '' : 'none';
+  if (!cb.checked && tabBtn.classList.contains('active')) {
+    const firstVisible = [...panel.querySelectorAll('.out-tab')].find(t => t.style.display !== 'none');
+    if (firstVisible) switchOut(firstVisible);
+  }
+}
+
+function activeOutContent(targetId) {
+  return document.getElementById(targetId).querySelector('.out-content.active');
 }
 
 function copyOut(targetId) {
-  const i = getActiveOutIndex(targetId);
-  const content = document.getElementById(targetId + '_' + i);
-  navigator.clipboard.writeText(content.textContent.trim()).then(() => showToast('Copied'));
+  const content = activeOutContent(targetId);
+  if (content) navigator.clipboard.writeText(content.textContent.trim()).then(() => showToast('Copied'));
 }
 
+// "Print This" — print the currently visible tab. Care Card redirects to the multi-page printer.
 function printOut(targetId) {
-  const i = getActiveOutIndex(targetId);
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','print-all'));
-  document.getElementById(targetId + '_' + i).classList.add('print-target');
+  const content = activeOutContent(targetId);
+  if (!content) return;
+  if (content.id.endsWith('_carecard')) { printSelected(targetId); return; }
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
+  content.classList.add('print-target');
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
   document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
   window.print();
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target'));
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
 }
 
-function printAll(targetId) {
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','print-all'));
-  document.getElementById(targetId).querySelectorAll('.out-content').forEach(c => c.classList.add('print-all'));
+// "Print Selected" — print only the checked printable pages (Clinical Context · Prescription · Patient Care Card),
+// each on its own A4 sheet. Diet / Exercise / Follow-up are screen-only references and are never printed.
+function printSelected(targetId) {
+  const panel = document.getElementById(targetId);
+  const host = document.getElementById(targetId + '_carecard');
+  const pages = host ? [...host.querySelectorAll('.scc-doc .page')] : [];
+  const wants = key => { const cb = panel.querySelector(`.out-cb[data-key="${key}"]`); return !cb || cb.checked; };
+  const selected = pages.filter(pg => wants(pg.dataset.pp));
+  if (!selected.length) { showToast('Nothing selected to print'); return; }
+
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
+  pages.forEach(pg => pg.classList.remove('pp-print','pp-last'));
+  host.classList.add('print-target','scc-host');
+  selected.forEach(pg => pg.classList.add('pp-print'));
+  selected[selected.length - 1].classList.add('pp-last');
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
-  document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
+  panel.closest('.tab-panel').classList.add('print-active');
+
   window.print();
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-all'));
+
+  host.classList.remove('print-target','scc-host');
+  pages.forEach(pg => pg.classList.remove('pp-print','pp-last'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
 }
 
