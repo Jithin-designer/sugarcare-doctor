@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+
+# Vercel
+.vercel
+
+# Claude Code (machine-local settings)
+.claude/settings.local.json
+
+# OS
+.DS_Store

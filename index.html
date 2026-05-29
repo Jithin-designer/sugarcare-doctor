@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SugarCARE Consult</title>
+<style>
+:root {
+  --purple: #4A2FA0; --purple-light: #6B4FCF; --orange: #E86A1A;
+  --bg: #F8F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-sec: #64648C;
+  --border: #E2DFEB; --input-bg: #FFFFFF; --shadow: 0 1px 4px rgba(74,47,160,0.06);
+  --green: #2E7D32; --red: #C62828; --amber: #E65100;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0F0F1A;--surface:#1A1A2E;--text:#F0F0F8;--text-sec:#9898B8;
+  --border:#2A2A40;--input-bg:#22223A;--shadow:0 1px 4px rgba(0,0,0,0.3);
+  --green:#66BB6A;--red:#EF5350;--amber:#FFB74D;
+}}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh;display:flex;flex-direction:column;}
+
+/* Header */
+.app-header{background:linear-gradient(135deg,var(--purple),var(--purple-light));color:#fff;padding:1.25rem 1rem;text-align:center;}
+.app-header h1{font-size:1.5rem;font-weight:800;letter-spacing:-0.5px;}
+.app-header h1 span{color:var(--orange);}
+.app-header .sub{font-size:0.8rem;opacity:0.8;margin-top:0.15rem;}
+
+/* Config bar */
+.config-bar{background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden;transition:max-height 0.3s;}
+.config-bar.collapsed .config-body{display:none;}
+.config-toggle{width:100%;padding:0.6rem 1rem;background:none;border:none;font-family:inherit;font-size:0.82rem;font-weight:600;color:var(--purple);cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;}
+.config-toggle .arrow{transition:transform 0.2s;font-size:0.7rem;}
+.config-bar.collapsed .arrow{transform:rotate(-90deg);}
+.config-body{padding:0.75rem 1rem 1rem;display:flex;flex-wrap:wrap;gap:0.6rem;align-items:flex-end;}
+.config-body .cf{flex:1;min-width:140px;}
+.config-body .cf label{display:block;font-size:0.7rem;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.2rem;}
+.config-body .cf input,.config-body .cf select{width:100%;padding:0.45rem 0.6rem;border:1px solid var(--border);border-radius:6px;font-size:0.82rem;font-family:inherit;background:var(--input-bg);color:var(--text);}
+.config-body .cf input:focus,.config-body .cf select:focus{outline:none;border-color:var(--purple);}
+.config-save{padding:0.45rem 0.9rem;background:var(--purple);color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:inherit;min-height:34px;}
+
+/* Container */
+.container{max-width:860px;margin:0 auto;padding:0 1rem 3rem;flex:1;width:100%;}
+
+/* Tabs */
+.main-tabs{display:flex;gap:0.25rem;background:var(--border);padding:0.3rem;border-radius:10px;margin:1rem 0;}
+.main-tab{flex:1;padding:0.6rem 0.25rem;border:none;border-radius:8px;background:transparent;font-family:inherit;font-size:0.78rem;font-weight:600;color:var(--text-sec);cursor:pointer;text-align:center;min-height:44px;transition:all 0.15s;}
+.main-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Form sections */
+.section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:var(--shadow);}
+.section h3{font-size:0.9rem;font-weight:700;color:var(--purple);margin-bottom:0.75rem;padding-bottom:0.4rem;border-bottom:2px solid var(--border);}
+.row{display:grid;grid-template-columns:1fr;gap:0.65rem;margin-bottom:0.65rem;}
+@media(min-width:520px){.row-2{grid-template-columns:1fr 1fr;}.row-3{grid-template-columns:1fr 1fr 1fr;}.row-4{grid-template-columns:1fr 1fr 1fr 1fr;}}
+.fld label{display:block;font-size:0.7rem;font-weight:600;color:var(--text-sec);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:0.2rem;}
+.fld input,.fld select,.fld textarea{width:100%;padding:0.55rem 0.65rem;border:1px solid var(--border);border-radius:8px;font-size:0.88rem;font-family:inherit;background:var(--input-bg);color:var(--text);transition:border-color 0.15s;}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--purple);}
+.fld textarea{resize:vertical;min-height:70px;}
+.fld-hint{font-size:0.68rem;color:var(--text-sec);margin-top:0.15rem;}
+
+/* Buttons */
+.btn{padding:0.55rem 1rem;border:none;border-radius:8px;font-size:0.85rem;font-weight:600;font-family:inherit;cursor:pointer;transition:opacity 0.15s;min-height:44px;}
+.btn:hover{opacity:0.85;}.btn:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-purple{background:var(--purple);color:#fff;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-sec);}
+.btn-red{background:var(--red);color:#fff;}
+.btn-sm{padding:0.4rem 0.75rem;font-size:0.8rem;min-height:36px;}
+.btn-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;}
+
+/* Audio input — stacked, full-width, state-driven (works on all screen sizes) */
+.audio-input{margin-bottom:1rem;}
+.audio-fullbtn{display:flex;align-items:center;justify-content:center;gap:0.4rem;width:100%;}
+.audio-divider{display:flex;align-items:center;gap:0.75rem;color:var(--text-sec);font-size:0.78rem;font-weight:600;margin:0.6rem 0;}
+.audio-divider::before,.audio-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
+.audio-hint{font-size:0.72rem;color:var(--text-sec);text-align:center;margin-top:0.6rem;}
+.audio-btn-row{display:flex;gap:0.5rem;margin-top:0.75rem;}
+.audio-btn-row .btn{flex:1;}
+.rec-status{display:flex;align-items:center;gap:0.6rem;padding:0.85rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:0.9rem;font-weight:600;color:var(--text);}
+.rec-dot{width:12px;height:12px;border-radius:50%;background:#E86A1A;flex-shrink:0;animation:recpulse 1s ease-in-out infinite;}
+.rec-dot.paused{animation:none;background:transparent;width:auto;height:auto;font-size:1rem;line-height:1;}
+.rec-timer{font-family:'SF Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-weight:700;color:var(--text);margin-left:auto;}
+.audio-ready{background:rgba(46,125,50,0.06);border:1px solid rgba(46,125,50,0.25);border-radius:10px;padding:0.85rem 1rem;font-size:0.85rem;color:var(--green);font-weight:600;display:flex;align-items:center;gap:0.5rem;}
+@keyframes recpulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);}}
+
+/* Progress */
+.progress-bar{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;display:none;}
+.progress-bar.visible{display:block;}
+.progress-step{display:flex;align-items:center;gap:0.75rem;padding:0.4rem 0;font-size:0.85rem;}
+.progress-step .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:0.65rem;}
+.progress-step.active .dot{border-color:var(--purple);background:var(--purple);color:#fff;animation:pulse 1.2s infinite;}
+.progress-step.done .dot{border-color:var(--green);background:var(--green);color:#fff;}
+.progress-step.error .dot{border-color:var(--red);background:var(--red);color:#fff;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+/* Transcript box */
+.transcript-box{background:var(--input-bg);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;overflow:hidden;}
+.transcript-toggle{width:100%;padding:0.6rem 1rem;background:none;border:none;font-family:inherit;font-size:0.82rem;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;justify-content:space-between;}
+.transcript-body{padding:0 1rem 1rem;display:none;}
+.transcript-box.open .transcript-body{display:block;}
+.transcript-body textarea{width:100%;min-height:100px;padding:0.6rem;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;font-family:inherit;background:var(--surface);color:var(--text);resize:vertical;}
+
+/* Output section */
+.output-section{display:none;margin-top:1rem;}
+.output-section.visible{display:block;}
+.out-tabs{display:flex;gap:0.25rem;background:var(--border);padding:0.3rem;border-radius:10px;margin-bottom:0;}
+.out-tab{flex:1;padding:0.55rem 0.25rem;border:none;border-radius:8px;background:transparent;font-family:inherit;font-size:0.78rem;font-weight:600;color:var(--text-sec);cursor:pointer;text-align:center;min-height:40px;transition:all 0.15s;}
+.out-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.out-panel{background:var(--surface);border:1px solid var(--border);border-radius:0 0 12px 12px;padding:1.5rem;box-shadow:var(--shadow);}
+.out-content{display:none;}
+.out-content.active{display:block;}
+.out-actions{display:flex;gap:0.5rem;margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);flex-wrap:wrap;}
+
+/* Output rendering */
+.out-header{text-align:center;padding-bottom:0.75rem;margin-bottom:1rem;border-bottom:2px solid var(--purple);}
+.out-header h2{font-size:1.1rem;font-weight:800;color:var(--purple);}
+.out-header h2 span{color:var(--orange);}
+.out-header .oh-sub{font-size:0.82rem;color:var(--text-sec);margin-top:0.15rem;}
+.out-header .oh-patient{font-size:0.88rem;font-weight:600;margin-top:0.5rem;}
+.out-section-title{font-size:0.82rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:0.5px;margin:1.25rem 0 0.5rem;padding-bottom:0.3rem;border-bottom:1px solid var(--border);}
+.out-bullets{list-style:none;padding:0;}
+.out-bullets li{padding:0.3rem 0 0.3rem 1.25rem;position:relative;font-size:0.88rem;}
+.out-bullets li::before{content:'•';position:absolute;left:0;color:var(--purple);font-weight:700;}
+.out-bullets.warning li::before{color:var(--red);content:'⚠';}
+.out-med-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin:0.5rem 0;}
+.out-med-table th{text-align:left;font-size:0.68rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:0.4px;padding:0.5rem 0.3rem;border-bottom:2px solid var(--border);}
+.out-med-table td{padding:0.55rem 0.3rem;border-bottom:1px solid var(--border);vertical-align:top;}
+.out-soap{margin:0.5rem 0;}
+.out-soap dt{font-size:0.78rem;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:0.3px;margin-top:0.75rem;}
+.out-soap dd{font-size:0.88rem;margin-left:0;padding:0.25rem 0;}
+.out-rx-symbol{font-size:1.5rem;font-weight:700;color:var(--purple);margin:0.5rem 0;}
+.out-sig{text-align:right;margin-top:2rem;padding-top:0.5rem;}
+.out-sig-line{display:inline-block;width:180px;border-top:1px solid var(--text);text-align:center;padding-top:4px;font-size:0.78rem;color:var(--text-sec);}
+.out-disclaimer{text-align:center;margin-top:1.5rem;padding-top:0.5rem;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text-sec);}
+.out-flags{margin-top:0.5rem;}
+.out-flag{background:rgba(198,40,40,0.05);border-left:3px solid var(--red);padding:0.4rem 0.75rem;border-radius:0 4px 4px 0;font-size:0.82rem;margin-bottom:0.35rem;color:var(--red);}
+@media(prefers-color-scheme:dark){.out-flag{background:rgba(239,83,80,0.08);}}
+
+/* Prescription-only tab */
+.med-table{width:100%;border-collapse:collapse;margin-top:0.5rem;}
+.med-table th{text-align:left;font-size:0.68rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;padding:0.4rem 0.2rem;border-bottom:2px solid var(--border);}
+.med-table td{padding:0.25rem 0.2rem;}
+.med-table input{width:100%;padding:0.4rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:0.82rem;font-family:inherit;background:var(--input-bg);color:var(--text);}
+.med-table input:focus{outline:none;border-color:var(--purple);}
+.btn-del{background:none;border:1px solid var(--red);color:var(--red);width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.9rem;}
+
+/* Toast */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--purple);color:#fff;padding:0.5rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:600;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:100;}
+.toast.show{opacity:1;}
+
+/* Footer */
+.app-footer{text-align:center;padding:1rem;font-size:0.75rem;color:var(--text-sec);border-top:1px solid var(--border);background:var(--surface);}
+
+/* Print */
+@media print{
+  @page{size:A4;margin:12mm 15mm;}
+  body{background:#fff;color:#000;font-size:11pt;}
+  .app-header,.config-bar,.main-tabs,.app-footer,.no-print,
+  .audio-input,.progress-bar,.transcript-box,
+  .out-tabs,.out-actions,.btn-row,.generate-bar,
+  .tab-panel:not(.print-active){display:none!important;}
+  .output-section{display:block!important;}
+  .out-panel{border:none;box-shadow:none;padding:0;border-radius:0;}
+  .out-content{display:none!important;}
+  .out-content.print-target{display:block!important;}
+  .out-content.print-all{display:block!important;page-break-after:always;}
+  .out-content.print-all:last-child{page-break-after:auto;}
+  .out-header h2{color:#4A2FA0;}
+  .out-header h2 span{color:#E86A1A;}
+  .section{border:none;box-shadow:none;padding:0;}
+  .fld input,.fld select,.fld textarea{border:none;padding:0;background:transparent;}
+  .med-table input{border:none;padding:0;background:transparent;font-size:9pt;}
+}
+</style>
+</head>
+<body>
+
+<div class="app-header no-print">
+  <h1>Sugar<span>CARE</span> Consult</h1>
+  <div class="sub">Clinical Documentation · Doctor-Only Tool</div>
+</div>
+
+<!-- Config bar -->
+<div class="config-bar collapsed" id="configBar">
+  <button class="config-toggle" onclick="toggleConfig()">
+    <span>API Keys &amp; Doctor Settings</span>
+    <span class="arrow">▼</span>
+  </button>
+  <div class="config-body">
+    <div class="cf" style="min-width:200px;"><label>Claude API Key</label><input type="password" id="cfgClaude" placeholder="sk-ant-…"></div>
+    <div class="cf" style="min-width:200px;"><label>Groq API Key</label><input type="password" id="cfgGroq" placeholder="gsk_…"></div>
+    <div class="cf"><label>Doctor Name</label><input type="text" id="cfgDoctor" placeholder="Dr. "></div>
+    <div class="cf"><label>Clinic</label><select id="cfgClinic"><option value="">Select</option><option>Areekode</option><option>Kondotty</option><option>Chemmad</option><option>Edappal</option><option>Punnayurkulam</option><option>Padinjaragadi</option></select></div>
+    <div class="cf"><label>Registration No.</label><input type="text" id="cfgRegNo" placeholder="KMC/…"></div>
+    <button class="config-save" onclick="saveConfig()">Save</button>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- Main tabs -->
+<div class="main-tabs no-print">
+  <button class="main-tab active" onclick="switchMain(0)">Audio Consult</button>
+  <button class="main-tab" onclick="switchMain(1)">Manual Entry</button>
+  <button class="main-tab" onclick="switchMain(2)">Prescription Only</button>
+</div>
+
+<!-- ===== TAB 0: Audio Consult ===== -->
+<div class="tab-panel active" id="mainTab0">
+
+  <div class="section">
+    <h3>Audio Input</h3>
+    <div class="audio-input no-print" id="audioInput">
+      <!-- Idle: stacked full-width Record / or / Choose File -->
+      <div class="audio-state" id="audioIdle">
+        <button class="btn btn-purple audio-fullbtn" onclick="startRecording()">🎙️ Start Recording</button>
+        <div class="audio-divider"><span>or</span></div>
+        <label class="btn btn-outline audio-fullbtn" for="audioFile">📁 Choose File</label>
+        <input type="file" id="audioFile" accept=".mp3,.mp4,.wav,.m4a,.webm,audio/*" onchange="handleFileUpload()" hidden>
+        <div class="audio-hint">.mp3, .mp4, .wav, .m4a, .webm · or record with your device mic</div>
+      </div>
+
+      <!-- Recording / Paused (same block, swapped labels + dot) -->
+      <div class="audio-state" id="audioRecording" style="display:none;">
+        <div class="rec-status">
+          <span class="rec-dot" id="recDot"></span>
+          <span id="recStatusText">Recording…</span>
+          <span class="rec-timer" id="recTimer">00:00</span>
+        </div>
+        <div class="audio-btn-row">
+          <button class="btn btn-outline" id="pauseBtn" onclick="togglePause()">Pause</button>
+          <button class="btn btn-red" id="recStopBtn" onclick="stopRecording()">Stop</button>
+        </div>
+      </div>
+
+      <!-- Stopped / Ready -->
+      <div class="audio-state" id="audioRecorded" style="display:none;">
+        <div class="audio-ready"><span>✓</span><span id="recordedText">Recording ready</span></div>
+        <div class="audio-btn-row">
+          <button class="btn btn-outline" onclick="recordAgain()">Record Again</button>
+          <button class="btn btn-purple" onclick="transcribeAndAnalyse()">Use This</button>
+        </div>
+      </div>
+
+      <!-- File uploaded -->
+      <div class="audio-state" id="audioFileReady" style="display:none;">
+        <div class="audio-ready"><span>✓</span><span id="fileText">File ready</span><button class="btn btn-outline btn-sm" onclick="resetAudio()" style="margin-left:auto;">Clear</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Patient Details</h3>
+    <div class="row row-4">
+      <div class="fld"><label>Name</label><input type="text" id="a_name" placeholder="Full name"></div>
+      <div class="fld"><label>Age</label><input type="number" id="a_age" placeholder="Years"></div>
+      <div class="fld"><label>Gender</label><select id="a_gender"><option value="">Select</option><option>M</option><option>F</option><option>Other</option></select></div>
+      <div class="fld"><label>Visit Type</label><select id="a_visit"><option>New patient</option><option>Follow-up</option><option>Titration visit</option><option>Annual review</option></select></div>
+    </div>
+    <div class="row row-3">
+      <div class="fld"><label>Date</label><input type="date" id="a_date"></div>
+      <div class="fld"></div><div class="fld"></div>
+    </div>
+  </div>
+
+  <div class="generate-bar" style="text-align:center;margin-bottom:1rem;">
+    <button class="btn btn-orange" id="transcribeBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.75rem 2rem;font-size:0.95rem;">Transcribe &amp; Analyse</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-step" id="step1"><div class="dot">1</div><span>Transcribing audio…</span></div>
+    <div class="progress-step" id="step2"><div class="dot">2</div><span>Analysing with SugarCARE clinical skill…</span></div>
+    <div class="progress-step" id="step3"><div class="dot">3</div><span>Generating output…</span></div>
+  </div>
+
+  <!-- Transcript -->
+  <div class="transcript-box" id="transcriptBox" style="display:none;">
+    <button class="transcript-toggle" onclick="document.getElementById('transcriptBox').classList.toggle('open')">
+      <span>Transcript</span><span>▼</span>
+    </button>
+    <div class="transcript-body">
+      <textarea id="transcriptText" placeholder="Transcript will appear here. You can edit before analysis."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-purple btn-sm" onclick="reAnalyse()">Re-analyse with edits</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="output-section" id="audioOutput"></div>
+</div>
+
+<!-- ===== TAB 1: Manual Entry ===== -->
+<div class="tab-panel" id="mainTab1">
+
+  <div class="section">
+    <h3>Patient Details</h3>
+    <div class="row row-4">
+      <div class="fld"><label>Name</label><input type="text" id="m_name" placeholder="Full name"></div>
+      <div class="fld"><label>Age</label><input type="number" id="m_age" placeholder="Years"></div>
+      <div class="fld"><label>Gender</label><select id="m_gender"><option value="">Select</option><option>M</option><option>F</option><option>Other</option></select></div>
+      <div class="fld"><label>Visit Type</label><select id="m_visit"><option>New patient</option><option>Follow-up</option><option>Titration visit</option><option>Annual review</option></select></div>
+    </div>
+    <div class="row row-3">
+      <div class="fld"><label>Date</label><input type="date" id="m_date"></div>
+      <div class="fld"></div><div class="fld"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Clinical Data</h3>
+    <div class="row"><div class="fld"><label>Chief Complaint</label><textarea id="m_cc" rows="2" placeholder="Reason for visit…"></textarea></div></div>
+    <div class="row row-4">
+      <div class="fld"><label>HbA1c (%)</label><input type="number" step="0.1" id="m_hba1c" placeholder="7.2"></div>
+      <div class="fld"><label>FBS (mg/dL)</label><input type="number" id="m_fbs" placeholder="126"></div>
+      <div class="fld"><label>PPBS (mg/dL)</label><input type="number" id="m_ppbs" placeholder="180"></div>
+      <div class="fld"><label>BP (sys/dia)</label><input type="text" id="m_bp" placeholder="130/80"></div>
+    </div>
+    <div class="row row-4">
+      <div class="fld"><label>Weight (kg)</label><input type="number" step="0.1" id="m_wt" oninput="calcManualBMI()"></div>
+      <div class="fld"><label>Height (cm)</label><input type="number" step="0.1" id="m_ht" oninput="calcManualBMI()"></div>
+      <div class="fld"><label>BMI (auto)</label><input type="text" id="m_bmi" readonly placeholder="—"></div>
+      <div class="fld"><label>Waist (cm)</label><input type="number" step="0.1" id="m_waist"></div>
+    </div>
+    <div class="row row-2">
+      <div class="fld"><label>eGFR (optional)</label><input type="number" step="0.1" id="m_egfr" placeholder="mL/min"></div>
+      <div class="fld"><label>Creatinine (optional)</label><input type="number" step="0.01" id="m_creat" placeholder="mg/dL"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Medications &amp; History</h3>
+    <div class="row"><div class="fld"><label>Current Medications</label><textarea id="m_meds" rows="3" placeholder="One per line: Drug name, dose, frequency…"></textarea></div></div>
+    <div class="row"><div class="fld"><label>Key Findings / History</label><textarea id="m_history" rows="3" placeholder="Relevant clinical history, exam findings…"></textarea></div></div>
+    <div class="row"><div class="fld"><label>Herbal / AYUSH / OTC</label><textarea id="m_herbal" rows="2" placeholder="Any alternative medicines or supplements…"></textarea></div></div>
+    <div class="row"><div class="fld"><label>Lifestyle Notes</label><textarea id="m_lifestyle" rows="2" placeholder="Diet, exercise, smoking, sleep…"></textarea></div></div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:1rem;">
+    <button class="btn btn-orange" id="manualBtn" onclick="manualAnalyse()" style="padding:0.75rem 2rem;font-size:0.95rem;">Analyse</button>
+  </div>
+
+  <div class="progress-bar" id="manualProgress">
+    <div class="progress-step" id="mStep1"><div class="dot">1</div><span>Analysing with SugarCARE clinical skill…</span></div>
+    <div class="progress-step" id="mStep2"><div class="dot">2</div><span>Generating output…</span></div>
+  </div>
+
+  <div class="output-section" id="manualOutput"></div>
+</div>
+
+<!-- ===== TAB 2: Prescription Only ===== -->
+<div class="tab-panel" id="mainTab2">
+
+  <div class="section">
+    <h3>Patient &amp; Doctor</h3>
+    <div class="row row-3">
+      <div class="fld"><label>Patient Name</label><input type="text" id="p_name" placeholder="Full name"></div>
+      <div class="fld"><label>Age</label><input type="number" id="p_age" placeholder="Years"></div>
+      <div class="fld"><label>Date</label><input type="date" id="p_date"></div>
+    </div>
+    <div class="row row-3">
+      <div class="fld"><label>Doctor</label><input type="text" id="p_doctor" readonly></div>
+      <div class="fld"><label>Clinic</label><input type="text" id="p_clinic" readonly></div>
+      <div class="fld"><label>Reg. No.</label><input type="text" id="p_reg" readonly></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Prescription ℞</h3>
+    <div style="overflow-x:auto;">
+      <table class="med-table" id="pRxTable">
+        <thead><tr><th style="width:5%">#</th><th style="width:25%">Drug</th><th style="width:13%">Dose</th><th style="width:17%">Frequency</th><th style="width:13%">Duration</th><th style="width:17%">Instructions</th><th style="width:5%" class="no-print"></th></tr></thead>
+        <tbody id="pRxBody">
+          <tr><td style="text-align:center;font-weight:600;color:var(--text-sec);">1</td><td><input type="text" placeholder="Drug name"></td><td><input type="text" placeholder="500mg"></td><td><input type="text" placeholder="1-0-1"></td><td><input type="text" placeholder="30 days"></td><td><input type="text" placeholder="After food"></td><td class="no-print"><button class="btn-del" onclick="delPRow(this)">×</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="btn-row no-print"><button class="btn btn-outline btn-sm" onclick="addPRow()">+ Add Medication</button></div>
+  </div>
+
+  <div class="section">
+    <h3>Notes &amp; Follow-up</h3>
+    <div class="row"><div class="fld"><label>Special Instructions</label><textarea id="p_notes" rows="2" placeholder="Notes for patient or pharmacist…"></textarea></div></div>
+    <div class="row row-2">
+      <div class="fld"><label>Next Review</label><input type="date" id="p_review"></div>
+      <div class="fld"><label>Review Type</label><select id="p_reviewType"><option>Titration (1–2 weeks)</option><option>Q1 (3 months)</option><option>Q2 (6 months)</option><option>Q3 (9 months)</option><option>Annual surveillance</option></select></div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-bottom:1rem;">
+    <button class="btn btn-purple" onclick="printPrescriptionOnly()" style="padding:0.75rem 2rem;">Print Prescription</button>
+  </div>
+
+  <!-- Print-only Rx output -->
+  <div id="rxPrintArea" style="display:none;"></div>
+</div>
+
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<div class="app-footer no-print">
+  SugarCARE · HomoRx Healthtech · Clinical Tools · For Authorised Doctors Only
+</div>
+
+<script>
+/* ============ CONFIG ============ */
+const CFG_KEY = 'sugarcare-consult-cfg';
+
+function loadConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem(CFG_KEY) || '{}');
+    if (c.claude) document.getElementById('cfgClaude').value = c.claude;
+    if (c.groq) document.getElementById('cfgGroq').value = c.groq;
+    if (c.doctor) document.getElementById('cfgDoctor').value = c.doctor;
+    if (c.clinic) document.getElementById('cfgClinic').value = c.clinic;
+    if (c.regNo) document.getElementById('cfgRegNo').value = c.regNo;
+    if (c.claude && c.groq) document.getElementById('configBar').classList.add('collapsed');
+    syncPrescriptionFields();
+  } catch(e){}
+}
+function saveConfig() {
+  const c = {
+    claude: document.getElementById('cfgClaude').value.trim(),
+    groq: document.getElementById('cfgGroq').value.trim(),
+    doctor: document.getElementById('cfgDoctor').value.trim(),
+    clinic: document.getElementById('cfgClinic').value,
+    regNo: document.getElementById('cfgRegNo').value.trim()
+  };
+  localStorage.setItem(CFG_KEY, JSON.stringify(c));
+  document.getElementById('configBar').classList.add('collapsed');
+  syncPrescriptionFields();
+  showToast('Settings saved');
+}
+function toggleConfig() { document.getElementById('configBar').classList.toggle('collapsed'); }
+function cfg(k) { try { return JSON.parse(localStorage.getItem(CFG_KEY))[k] || ''; } catch(e) { return ''; } }
+function syncPrescriptionFields() {
+  document.getElementById('p_doctor').value = cfg('doctor');
+  document.getElementById('p_clinic').value = cfg('clinic') ? 'SugarCARE ' + cfg('clinic') : '';
+  document.getElementById('p_reg').value = cfg('regNo');
+}
+
+/* ============ TABS ============ */
+function switchMain(i) {
+  document.querySelectorAll('.main-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  document.querySelectorAll('.tab-panel').forEach((p,j) => p.classList.toggle('active', j===i));
+}
+
+/* ============ AUDIO RECORDING ============ */
+let mediaRecorder = null, audioChunks = [], audioBlob = null, audioFileName = '', recInterval = null, recSeconds = 0, recStream = null, audioState = 'idle';
+
+function getSupportedMime() {
+  const types = ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus',''];
+  for (const t of types) { if (!t || MediaRecorder.isTypeSupported(t)) return t; }
+  return '';
+}
+
+// Single source of truth: shows the right block AND gates the Transcribe & Analyse button.
+function setAudioState(state) {
+  audioState = state;
+  ['audioIdle','audioRecording','audioRecorded','audioFileReady'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  if (state === 'idle') document.getElementById('audioIdle').style.display = 'block';
+  else if (state === 'recording' || state === 'paused') document.getElementById('audioRecording').style.display = 'block';
+  else if (state === 'recorded') document.getElementById('audioRecorded').style.display = 'block';
+  else if (state === 'file') document.getElementById('audioFileReady').style.display = 'block';
+  // Transcribe only allowed once we actually hold audio.
+  document.getElementById('transcribeBtn').disabled = !(state === 'recorded' || state === 'file');
+}
+
+function startTimer() { recInterval = setInterval(() => { recSeconds++; updateTimer(); }, 1000); }
+function stopTimer() { clearInterval(recInterval); recInterval = null; }
+function updateTimer() { document.getElementById('recTimer').textContent = formatTime(recSeconds); }
+function formatTime(s) { return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+
+// Swap dot + labels between Recording and Paused looks.
+function setRecordingUI(paused) {
+  const dot = document.getElementById('recDot');
+  dot.className = paused ? 'rec-dot paused' : 'rec-dot';
+  dot.textContent = paused ? '⏸' : '';
+  document.getElementById('recStatusText').textContent = paused ? 'Paused' : 'Recording…';
+  document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+  document.getElementById('recStopBtn').textContent = paused ? 'Stop & Use' : 'Stop';
+}
+
+async function startRecording() {
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (e) {
+    alert('Microphone access denied. Please allow microphone permissions.');
+    return;
+  }
+  const mime = getSupportedMime();
+  audioChunks = [];
+  mediaRecorder = new MediaRecorder(recStream, mime ? { mimeType: mime } : {});
+  mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+  mediaRecorder.onstop = finalizeRecording;
+  mediaRecorder.start(1000);
+  recSeconds = 0;
+  updateTimer();
+  startTimer();
+  setRecordingUI(false);
+  setAudioState('recording');
+}
+
+function togglePause() {
+  if (!mediaRecorder) return;
+  if (mediaRecorder.state === 'recording') {
+    mediaRecorder.pause();
+    stopTimer();              // freeze the timer
+    setRecordingUI(true);
+    setAudioState('paused');
+  } else if (mediaRecorder.state === 'paused') {
+    mediaRecorder.resume();
+    startTimer();
+    setRecordingUI(false);
+    setAudioState('recording');
+  }
+}
+
+function stopRecording() {
+  stopTimer();
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); // -> finalizeRecording
+}
+
+function finalizeRecording() {
+  if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+  const ext = (mediaRecorder.mimeType || '').includes('mp4') ? 'mp4' : 'webm';
+  audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+  audioFileName = `recording.${ext}`;
+  document.getElementById('recordedText').textContent = `Recording ready (${formatTime(recSeconds)})`;
+  setAudioState('recorded');
+}
+
+function recordAgain() { resetAudio(); startRecording(); }
+
+function handleFileUpload() {
+  const file = document.getElementById('audioFile').files[0];
+  if (!file) return;
+  audioBlob = file;
+  audioFileName = file.name;
+  document.getElementById('fileText').textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+  setAudioState('file');
+}
+
+function resetAudio() {
+  if (mediaRecorder) {
+    mediaRecorder.onstop = null;  // prevent late onstop from clobbering the reset (Record Again race)
+    if (mediaRecorder.state !== 'inactive') { try { mediaRecorder.stop(); } catch (e) {} }
+  }
+  if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+  stopTimer();
+  mediaRecorder = null; audioChunks = []; audioBlob = null; audioFileName = ''; recSeconds = 0;
+  document.getElementById('audioFile').value = '';
+  updateTimer();
+  setAudioState('idle');
+}
+
+/* ============ TRANSCRIBE & ANALYSE ============ */
+function setStep(prefix, num, state) {
+  const el = document.getElementById(prefix + num);
+  el.className = 'progress-step ' + state;
+  if (state === 'done') el.querySelector('.dot').textContent = '✓';
+  else if (state === 'error') el.querySelector('.dot').textContent = '✗';
+}
+
+async function transcribeAndAnalyse() {
+  if (!audioBlob) return;
+  const groqKey = cfg('groq');
+  const claudeKey = cfg('claude');
+  if (!groqKey) { alert('Please set your Groq API key in settings.'); toggleConfig(); return; }
+  if (!claudeKey) { alert('Please set your Claude API key in settings.'); toggleConfig(); return; }
+
+  const prog = document.getElementById('progressBar');
+  prog.classList.add('visible');
+  ['step1','step2','step3'].forEach(s => { const el = document.getElementById(s); el.className = 'progress-step'; el.querySelector('.dot').textContent = el.id.replace('step',''); });
+
+  document.getElementById('transcribeBtn').disabled = true;
+  document.getElementById('transcriptBox').style.display = 'none';
+  document.getElementById('audioOutput').classList.remove('visible');
+  document.getElementById('audioOutput').innerHTML = '';
+
+  // Step 1: Transcribe
+  setStep('step', 1, 'active');
+  try {
+    const fd = new FormData();
+    const ext = audioFileName.split('.').pop() || 'webm';
+    fd.append('file', audioBlob, audioFileName || ('audio.' + ext));
+    fd.append('model', 'whisper-large-v3');
+    fd.append('language', 'en');
+
+    const res = await fetch('/api/transcribe', {
+      method: 'POST',
+      headers: { 'x-groq-key': groqKey },
+      body: fd
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Transcription failed');
+
+    setStep('step', 1, 'done');
+    document.getElementById('transcriptText').value = data.transcript;
+    document.getElementById('transcriptBox').style.display = 'block';
+
+    // Step 2: Analyse
+    setStep('step', 2, 'active');
+    const patient = getAudioPatient();
+    const aRes = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: claudeKey, transcript: data.transcript, patientDetails: patient })
+    });
+    const aData = await aRes.json();
+    if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
+
+    setStep('step', 2, 'done');
+    setStep('step', 3, 'done');
+    renderOutput('audioOutput', aData, patient);
+  } catch (e) {
+    const active = document.querySelector('.progress-step.active');
+    if (active) active.className = 'progress-step error';
+    showToast('Error: ' + e.message);
+  }
+  document.getElementById('transcribeBtn').disabled = false;
+}
+
+async function reAnalyse() {
+  const claudeKey = cfg('claude');
+  if (!claudeKey) { alert('Set Claude API key.'); return; }
+  const transcript = document.getElementById('transcriptText').value.trim();
+  if (!transcript) return;
+
+  const prog = document.getElementById('progressBar');
+  prog.classList.add('visible');
+  setStep('step', 2, 'active');
+  document.getElementById('audioOutput').classList.remove('visible');
+
+  try {
+    const patient = getAudioPatient();
+    const res = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: claudeKey, transcript, patientDetails: patient })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Analysis failed');
+    setStep('step', 2, 'done');
+    setStep('step', 3, 'done');
+    renderOutput('audioOutput', data, patient);
+  } catch (e) {
+    setStep('step', 2, 'error');
+    showToast('Error: ' + e.message);
+  }
+}
+
+function getAudioPatient() {
+  return {
+    name: document.getElementById('a_name').value, age: document.getElementById('a_age').value,
+    gender: document.getElementById('a_gender').value, visitType: document.getElementById('a_visit').value,
+    date: document.getElementById('a_date').value, doctor: cfg('doctor'), clinic: cfg('clinic')
+  };
+}
+
+/* ============ MANUAL ANALYSE ============ */
+async function manualAnalyse() {
+  const claudeKey = cfg('claude');
+  if (!claudeKey) { alert('Set Claude API key.'); toggleConfig(); return; }
+
+  const v = id => document.getElementById(id).value.trim();
+  const patient = { name: v('m_name'), age: v('m_age'), gender: v('m_gender'), visitType: v('m_visit'), date: v('m_date'), doctor: cfg('doctor'), clinic: cfg('clinic') };
+
+  const parts = [];
+  if (v('m_cc')) parts.push('Chief complaint: ' + v('m_cc'));
+  const vitals = [];
+  if (v('m_hba1c')) vitals.push('HbA1c: ' + v('m_hba1c') + '%');
+  if (v('m_fbs')) vitals.push('FBS: ' + v('m_fbs') + ' mg/dL');
+  if (v('m_ppbs')) vitals.push('PPBS: ' + v('m_ppbs') + ' mg/dL');
+  if (v('m_bp')) vitals.push('BP: ' + v('m_bp') + ' mmHg');
+  if (v('m_wt')) vitals.push('Weight: ' + v('m_wt') + ' kg');
+  if (v('m_ht')) vitals.push('Height: ' + v('m_ht') + ' cm');
+  if (v('m_bmi')) vitals.push('BMI: ' + v('m_bmi'));
+  if (v('m_waist')) vitals.push('Waist: ' + v('m_waist') + ' cm');
+  if (v('m_egfr')) vitals.push('eGFR: ' + v('m_egfr'));
+  if (v('m_creat')) vitals.push('Creatinine: ' + v('m_creat') + ' mg/dL');
+  if (vitals.length) parts.push('Vitals/labs: ' + vitals.join(', '));
+  if (v('m_meds')) parts.push('Current medications:\n' + v('m_meds'));
+  if (v('m_history')) parts.push('History/findings:\n' + v('m_history'));
+  if (v('m_herbal')) parts.push('Herbal/AYUSH/OTC: ' + v('m_herbal'));
+  if (v('m_lifestyle')) parts.push('Lifestyle notes: ' + v('m_lifestyle'));
+  const transcript = parts.join('\n\n');
+
+  if (!transcript) { alert('Please enter clinical data.'); return; }
+
+  const prog = document.getElementById('manualProgress');
+  prog.classList.add('visible');
+  ['mStep1','mStep2'].forEach(s => { const el = document.getElementById(s); el.className = 'progress-step'; el.querySelector('.dot').textContent = s.replace('mStep',''); });
+  document.getElementById('manualBtn').disabled = true;
+  document.getElementById('manualOutput').classList.remove('visible');
+  document.getElementById('manualOutput').innerHTML = '';
+
+  setStep('mStep', 1, 'active');
+  try {
+    const res = await fetch('/api/analyse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: claudeKey, transcript, patientDetails: patient })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Analysis failed');
+    setStep('mStep', 1, 'done');
+    setStep('mStep', 2, 'done');
+    renderOutput('manualOutput', data, patient);
+  } catch (e) {
+    setStep('mStep', 1, 'error');
+    showToast('Error: ' + e.message);
+  }
+  document.getElementById('manualBtn').disabled = false;
+}
+
+function calcManualBMI() {
+  const w = parseFloat(document.getElementById('m_wt').value);
+  const h = parseFloat(document.getElementById('m_ht').value);
+  document.getElementById('m_bmi').value = (w > 0 && h > 0) ? (w / ((h/100)**2)).toFixed(1) : '';
+}
+
+/* ============ OUTPUT RENDERER ============ */
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+function renderOutput(targetId, data, patient) {
+  const el = document.getElementById(targetId);
+  const ctx  = data.context || {};
+  const rx   = data.idealPrescription || {};
+  const diet = data.idealDiet || {};
+  const ex   = data.idealExercise || {};
+  const fup  = data.idealFollowUpPlan || {};
+  const dr = cfg('doctor'); const cl = cfg('clinic'); const reg = cfg('regNo');
+  const today = patient.date || new Date().toISOString().split('T')[0];
+  const pInfo = [esc(patient.name), patient.age ? patient.age + 'y' : '', esc(patient.gender)].filter(Boolean).join(', ');
+
+  const headerHTML = `<div class="out-header"><h2>Sugar<span>CARE</span></h2><div class="oh-sub">${esc(dr)}${cl ? ' · SugarCARE '+esc(cl) : ''}${reg ? ' · '+esc(reg) : ''} · ${esc(today)}</div><div class="oh-patient">${pInfo || 'Patient'} · ${esc(patient.visitType || '')}</div></div>`;
+
+  // helper: array -> <li> list
+  const li = arr => (arr||[]).map(x => `<li>${esc(x)}</li>`).join('');
+
+  // --- medications (shared by Care Card + Prescription) ---
+  const meds = rx.medications || [];
+  const ccMedsHTML = meds.map(m => `<tr><td>${esc(m.drug)}</td><td>${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.instructions)}</td></tr>`).join('');
+  const rxMedsHTML = meds.map((m,i) => `<tr><td>${i+1}</td><td>${esc(m.drug)}</td><td>${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.duration)}</td><td>${esc(m.instructions)}</td><td>${esc(m.costTier)}</td></tr>`).join('');
+
+  // --- diet ---
+  const macros = diet.macros || {};
+  const macroLine = (macros.carbsPercent || macros.proteinPercent || macros.fatPercent)
+    ? `Carbs ${esc(macros.carbsPercent)}% · Protein ${esc(macros.proteinPercent)}% · Fat ${esc(macros.fatPercent)}%` : '';
+
+  // --- exercise ---
+  const exLine = [
+    ex.type ? esc(ex.type) : '',
+    ex.minutesPerDay ? esc(ex.minutesPerDay) + ' min/day' : '',
+    ex.daysPerWeek ? esc(ex.daysPerWeek) + ' days/week' : '',
+    ex.weeklyMinutes ? '(' + esc(ex.weeklyMinutes) + ' min/week total)' : ''
+  ].filter(Boolean).join(' · ');
+
+  // --- follow-up ---
+  const targets = fup.targetsByNextVisit || {};
+  const targetsHTML = [
+    targets.hba1c  ? `<li>HbA1c: ${esc(targets.hba1c)}</li>`  : '',
+    targets.weight ? `<li>Weight: ${esc(targets.weight)}</li>` : '',
+    targets.bp     ? `<li>BP: ${esc(targets.bp)}</li>`         : '',
+    ...(targets.other || []).map(o => `<li>${esc(o)}</li>`)
+  ].join('');
+  const seqHTML = (fup.visitSequence || []).map(v => `<li>${v.done ? '✓' : '○'} ${esc(v.visit)}</li>`).join('');
+  const redFlagsHTML = (ctx.redFlags || []).map(f => `<div class="out-flag">${esc(f)}</div>`).join('');
+
+  el.innerHTML = `
+    <div class="out-tabs no-print">
+      <button class="out-tab active" onclick="switchOut(this,0)">Care Card</button>
+      <button class="out-tab" onclick="switchOut(this,1)">Prescription</button>
+      <button class="out-tab" onclick="switchOut(this,2)">Clinical Notes</button>
+    </div>
+    <div class="out-panel">
+      <div class="out-content active" id="${targetId}_0">
+        ${headerHTML}
+        <div class="out-section-title">Clinical Picture</div>
+        <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
+        <div class="out-section-title">Your Treatment Plan</div>
+        <table class="out-med-table"><thead><tr><th>Drug</th><th>Dose</th><th>Frequency</th><th>Instructions</th></tr></thead><tbody>${ccMedsHTML || '<tr><td colspan="4">No medications</td></tr>'}</tbody></table>
+        <div class="out-section-title">Diet Plan${diet.targetCalories ? ' — ' + esc(diet.targetCalories) + ' kcal/day' : ''}</div>
+        ${macroLine ? '<p style="font-size:0.82rem;color:var(--text-sec);">'+macroLine+'</p>' : ''}
+        <ul class="out-bullets">${li(diet.mealPlan) || '<li>No meal plan provided</li>'}</ul>
+        ${diet.keralaMeals && diet.keralaMeals.length ? '<div class="out-section-title">Kerala Food Swaps</div><ul class="out-bullets">'+li(diet.keralaMeals)+'</ul>' : ''}
+        ${diet.avoid && diet.avoid.length ? '<div class="out-section-title">Foods to Avoid</div><ul class="out-bullets warning">'+li(diet.avoid)+'</ul>' : ''}
+        ${diet.hydration ? '<p style="font-size:0.85rem;"><strong>Hydration:</strong> '+esc(diet.hydration)+'</p>' : ''}
+        <div class="out-section-title">Exercise</div>
+        ${exLine ? '<p style="font-size:0.88rem;">'+exLine+'</p>' : '<p style="font-size:0.88rem;">—</p>'}
+        ${ex.progression ? '<p style="font-size:0.85rem;color:var(--text-sec);"><strong>Build up:</strong> '+esc(ex.progression)+'</p>' : ''}
+        ${ex.restrictions && ex.restrictions.length ? '<p style="font-size:0.85rem;color:var(--red);"><strong>Avoid:</strong> '+esc((ex.restrictions||[]).join('; '))+'</p>' : ''}
+        <div class="out-section-title">Next Appointment</div>
+        <p style="font-size:0.88rem;">${esc(fup.nextVisitType || '—')}${fup.nextVisitDate ? ' — ' + esc(fup.nextVisitDate) : ''}</p>
+        ${targetsHTML ? '<div class="out-section-title">Targets by Next Visit</div><ul class="out-bullets">'+targetsHTML+'</ul>' : ''}
+        <div class="out-section-title">Warning Signs — Come Back If</div>
+        <ul class="out-bullets warning">${li(fup.warningSignsToReturn) || '<li>No specific warnings</li>'}</ul>
+        <div class="out-disclaimer">SugarCARE · ${esc(cl ? 'SugarCARE '+cl : '')} · ${esc(dr)} · ${esc(today)}<br>Clinical decision support only. Prescriber judgement is final.</div>
+      </div>
+
+      <div class="out-content" id="${targetId}_1">
+        ${headerHTML}
+        <div class="out-rx-symbol">℞</div>
+        <table class="out-med-table"><thead><tr><th>#</th><th>Drug</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Instructions</th><th>Cost</th></tr></thead><tbody>${rxMedsHTML}</tbody></table>
+        ${rx.specialInstructions ? '<div class="out-section-title">Special Instructions</div><p style="font-size:0.88rem;">'+esc(rx.specialInstructions)+'</p>' : ''}
+        ${rx.monitoringParameters && rx.monitoringParameters.length ? '<div class="out-section-title">Monitoring Parameters</div><ul class="out-bullets">'+li(rx.monitoringParameters)+'</ul>' : ''}
+        <div class="out-sig"><div class="out-sig-line">Signature of Prescriber</div></div>
+        <div class="out-disclaimer">For use as prescribed. Verify all drug data with CIMS India before dispensing.<br>SugarCARE · HomoRx Healthtech</div>
+      </div>
+
+      <div class="out-content" id="${targetId}_2">
+        ${headerHTML}
+        <div class="out-section-title">Summary</div>
+        <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
+        <div class="out-section-title">Deviations / Abnormal Values</div>
+        <ul class="out-bullets">${li(ctx.deviations) || '<li>None noted</li>'}</ul>
+        <div class="out-section-title">Internal Issues</div>
+        <ul class="out-bullets">${li(ctx.internalIssues) || '<li>None noted</li>'}</ul>
+        <div class="out-section-title">Missing Data</div>
+        <ul class="out-bullets">${li(ctx.missingData) || '<li>None — data complete</li>'}</ul>
+        ${redFlagsHTML ? '<div class="out-section-title">Red Flags</div><div class="out-flags">'+redFlagsHTML+'</div>' : ''}
+        ${fup.nextVisitFocus && fup.nextVisitFocus.length ? '<div class="out-section-title">Next Visit Focus</div><ul class="out-bullets">'+li(fup.nextVisitFocus)+'</ul>' : ''}
+        ${seqHTML ? '<div class="out-section-title">Visit Sequence</div><ul class="out-bullets">'+seqHTML+'</ul>' : ''}
+        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
+      </div>
+
+      <div class="out-actions no-print">
+        <button class="btn btn-outline btn-sm" onclick="copyOut('${targetId}')">Copy</button>
+        <button class="btn btn-outline btn-sm" onclick="printOut('${targetId}')">Print This</button>
+        <button class="btn btn-purple btn-sm" onclick="printAll('${targetId}')">Print All (Care Card + Rx)</button>
+      </div>
+    </div>`;
+
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function switchOut(btn, i) {
+  const panel = btn.closest('.output-section');
+  panel.querySelectorAll('.out-tab').forEach((t,j) => t.classList.toggle('active', j===i));
+  panel.querySelectorAll('.out-content').forEach((c,j) => c.classList.toggle('active', j===i));
+}
+
+function getActiveOutIndex(targetId) {
+  const el = document.getElementById(targetId);
+  const tabs = el.querySelectorAll('.out-content');
+  for (let i = 0; i < tabs.length; i++) { if (tabs[i].classList.contains('active')) return i; }
+  return 0;
+}
+
+function copyOut(targetId) {
+  const i = getActiveOutIndex(targetId);
+  const content = document.getElementById(targetId + '_' + i);
+  navigator.clipboard.writeText(content.textContent.trim()).then(() => showToast('Copied'));
+}
+
+function printOut(targetId) {
+  const i = getActiveOutIndex(targetId);
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','print-all'));
+  document.getElementById(targetId + '_' + i).classList.add('print-target');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+  document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
+  window.print();
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+}
+
+function printAll(targetId) {
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','print-all'));
+  document.getElementById(targetId + '_0').classList.add('print-all');
+  document.getElementById(targetId + '_1').classList.add('print-all');
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+  document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
+  window.print();
+  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-all'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+}
+
+/* ============ PRESCRIPTION-ONLY TAB ============ */
+let pRowCount = 1;
+function addPRow() {
+  pRowCount++;
+  const tbody = document.getElementById('pRxBody');
+  const row = document.createElement('tr');
+  row.innerHTML = `<td style="text-align:center;font-weight:600;color:var(--text-sec);">${pRowCount}</td><td><input type="text" placeholder="Drug name"></td><td><input type="text" placeholder="500mg"></td><td><input type="text" placeholder="1-0-1"></td><td><input type="text" placeholder="30 days"></td><td><input type="text" placeholder="After food"></td><td class="no-print"><button class="btn-del" onclick="delPRow(this)">×</button></td>`;
+  tbody.appendChild(row);
+}
+function delPRow(btn) {
+  const tbody = document.getElementById('pRxBody');
+  if (tbody.rows.length > 1) { btn.closest('tr').remove(); renumberP(); }
+}
+function renumberP() {
+  const rows = document.getElementById('pRxBody').rows;
+  pRowCount = rows.length;
+  for (let i = 0; i < rows.length; i++) rows[i].cells[0].textContent = i + 1;
+}
+
+function printPrescriptionOnly() {
+  const v = id => document.getElementById(id).value.trim();
+  const dr = v('p_doctor'); const cl = v('p_clinic'); const reg = v('p_reg');
+  const pName = v('p_name'); const pAge = v('p_age'); const pDate = v('p_date');
+
+  const rows = document.getElementById('pRxBody').rows;
+  let medsHTML = '';
+  for (const row of rows) {
+    const inputs = row.querySelectorAll('input');
+    if (inputs[0].value.trim()) {
+      medsHTML += `<tr><td>${row.cells[0].textContent}</td>`;
+      for (const inp of inputs) medsHTML += `<td>${esc(inp.value)}</td>`;
+      medsHTML += '</tr>';
+    }
+  }
+
+  const area = document.getElementById('rxPrintArea');
+  area.style.display = 'block';
+  area.innerHTML = `
+    <div class="out-header"><h2>Sugar<span>CARE</span></h2><div class="oh-sub">${esc(dr)} · ${esc(cl)} · ${esc(reg)} · ${esc(pDate)}</div><div class="oh-patient">${esc(pName)}${pAge ? ', '+esc(pAge)+'y' : ''}</div></div>
+    <div class="out-rx-symbol">℞</div>
+    <table class="out-med-table"><thead><tr><th>#</th><th>Drug</th><th>Dose</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr></thead><tbody>${medsHTML}</tbody></table>
+    ${v('p_notes') ? '<div class="out-section-title">Special Instructions</div><p style="font-size:0.88rem;">'+esc(v('p_notes'))+'</p>' : ''}
+    ${v('p_review') ? '<div class="out-section-title">Next Review</div><p style="font-size:0.88rem;">'+esc(v('p_review'))+' — '+esc(v('p_reviewType'))+'</p>' : ''}
+    <div class="out-sig"><div class="out-sig-line">Signature of Prescriber</div></div>
+    <div class="out-disclaimer">For use as prescribed. Verify all drug data with CIMS India before dispensing.<br>SugarCARE · HomoRx Healthtech · For Authorised Doctors Only</div>`;
+
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+  document.getElementById('mainTab2').classList.add('print-active');
+  window.print();
+  area.style.display = 'none';
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+}
+
+/* ============ UTILS ============ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+/* ============ INIT ============ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadConfig();
+  document.getElementById('a_date').valueAsDate = new Date();
+  document.getElementById('m_date').valueAsDate = new Date();
+  document.getElementById('p_date').valueAsDate = new Date();
+});
+</script>
+</body>
+</html>
