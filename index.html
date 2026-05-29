@@ -160,31 +160,52 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
 /* Print */
 @media print{
-  @page{size:A4;margin:0;}
+  @page{size:A4 portrait;margin:10mm;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   body{background:#fff;color:#000;font-size:11pt;}
-  .app-header,.config-bar,.main-tabs,.app-footer,.no-print,
+  /* Hide every screen-only / interactive UI element so only the document prints */
+  .app-header,.config-bar,.main-tabs,.app-footer,.no-print,.section,
   .audio-input,.progress-bar,.transcript-box,
   .out-tabs,.out-selector,.out-actions,.btn-row,.generate-bar,
+  input,select,button,textarea,
   .tab-panel:not(.print-active){display:none!important;}
   .container{max-width:none;padding:0;}
   .output-section{display:block!important;}
   .out-panel{border:none;box-shadow:none;padding:0;border-radius:0;}
   .out-content{display:none!important;}
   .out-content.print-target{display:block!important;}
-  /* Legacy single-tab prints bring their own page margin (since @page margin is 0) */
-  .out-content.print-target:not(.scc-host),#rxPrintArea{padding:14mm 15mm;}
+  .out-content.print-target:not(.scc-host),#rxPrintArea{padding:0;}
   .out-header h2{color:#4A2FA0;}
   .out-header h2 span{color:#E86A1A;}
-  .section{border:none;box-shadow:none;padding:0;}
-  .fld input,.fld select,.fld textarea{border:none;padding:0;background:transparent;}
-  .med-table input{border:none;padding:0;background:transparent;font-size:9pt;}
-  /* Care-card 3-page document: print only pages flagged .pp-print, each on its own A4 sheet */
+  /* Care-card document: print only pages flagged .pp-print, each on its own A4 sheet.
+     (.pp-print's 4-class specificity intentionally beats .print-only/.page hides, so
+      Print Selected still controls which of pages 1-3 appear.) */
   .scc-host{padding:0!important;}
   .scc-host .scc-doc .page{display:none;}
-  .scc-host .scc-doc .page.pp-print{display:block;width:100%;max-width:none;min-height:auto;margin:0;box-shadow:none;border:none;border-radius:0;page-break-after:always;}
+  .scc-host .scc-doc .page.pp-print{display:block;width:100%;max-width:none;min-height:auto;margin:0;padding:0;box-shadow:none;border:none;border-radius:0;page-break-after:always;}
   .scc-host .scc-doc .page.pp-print.pp-last{page-break-after:auto;}
-  .scc-host .scc-doc .doc-footer{position:absolute;bottom:10mm;left:15mm;right:15mm;margin-top:0;}
+  .scc-host .scc-doc .doc-footer{position:static;margin-top:10px;}
+  /* Compaction — squeeze the full Patient Care Card onto a single sheet (fonts -1px, padding 8px) */
+  .scc-host .scc-doc .summary-bar{padding:8px 12px;margin-bottom:10px;font-size:10px;}
+  .scc-host .scc-doc .cc-sec-title{font-size:13px;margin-bottom:7px;}
+  .scc-host .scc-doc .med-grid{gap:6px;margin-bottom:10px;}
+  .scc-host .scc-doc .med-card{padding:8px 10px;}
+  .scc-host .scc-doc .med-card .med-name{font-size:11px;}
+  .scc-host .scc-doc .med-card .med-dose{font-size:12px;}
+  .scc-host .scc-doc .med-warn{padding:6px 10px;margin-bottom:10px;font-size:9.5px;}
+  .scc-host .scc-doc .nutrition-section{margin-bottom:10px;}
+  .scc-host .scc-doc .kcal-hero{padding:10px 12px;gap:12px;margin-bottom:6px;}
+  .scc-host .scc-doc .macro-card .m-value{font-size:16px;}
+  .scc-host .scc-doc .kerala-list{padding:8px 12px;}
+  .scc-host .scc-doc .kerala-list ul li{padding:3px 0;font-size:10px;}
+  .scc-host .scc-doc .lower-grid{gap:8px;margin-bottom:8px;}
+  .scc-host .scc-doc .lower-card{padding:8px;}
+  .scc-host .scc-doc .exercise-big{font-size:20px;}
+  .scc-host .scc-doc .goal-row{padding:5px 8px;}
+  .scc-host .scc-doc .next-visit-bar{padding:8px;margin-bottom:8px;}
+  .scc-host .scc-doc .tracker{padding:8px;}
+  .scc-host .scc-doc .log-cell{padding:6px 3px 4px;}
+  .scc-host .scc-doc .day-label{margin-bottom:10px;}
 }
 
 /* Output selector — section checkboxes */
@@ -196,6 +217,10 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 /* Ghost button (Save to DM Pro — coming soon) */
 .btn-ghost{background:transparent;border:1px dashed var(--border);color:var(--text-sec);cursor:not-allowed;}
 .btn-ghost:hover{opacity:1;}
+
+/* Print-only document pages (Clinical Summary, Prescription) — hidden on screen.
+   In print, page visibility is governed by .pp-print (set by Print Selected). */
+.print-only{display:none;}
 
 /* ===== Care-card / Rx / Context — 3-page print document (v3-white) ===== */
 .scc-doc{
@@ -1080,7 +1105,7 @@ function renderPrintPages(data, patient) {
   const missing = (ctx.missingData || []).map(x => esc(x)).join(' &nbsp;·&nbsp; ');
   const flags = (ctx.redFlags || []).map(rf => `<div class="flag-box"><div class="flag-label">⚠ Flag</div>${esc(rf)}</div>`).join('');
   const devs = (ctx.deviations || []).map(d => `<li>${esc(d)}</li>`).join('');
-  const page1 = `<div class="page" data-pp="context">
+  const page1 = `<div class="page print-only" data-pp="context">
     ${docHeader('<div><b>Internal Clinical Record</b></div>')}
     <div class="page-label">Clinical Summary &amp; Context</div>
     <div class="sec"><div class="sec-title">Clinical Picture</div><div class="clinical-picture">${esc(ctx.summary) || '—'}</div></div>
@@ -1098,7 +1123,7 @@ function renderPrintPages(data, patient) {
     return `<tr><td><div class="drug-name">${esc(d.name)}</div>${d.brand ? `<div class="drug-brand">${esc(d.brand)}</div>` : ''}</td><td class="drug-dose">${esc(m.dose)}</td><td>${esc(m.frequency)}</td><td>${esc(m.instructions)}</td><td><span class="badge ${bc}">${esc(m.costTier || 'Generic')}</span></td></tr>`;
   }).join('');
   const monIt = (rx.monitoringParameters || []).map(p => `<div class="mon-item">${esc(p)}</div>`).join('');
-  const page2 = `<div class="page" data-pp="rx">
+  const page2 = `<div class="page print-only" data-pp="rx">
     ${docHeader('')}
     <div class="page-label">℞ Prescription</div>
     <table class="rx-table"><thead><tr><th style="width:26%">Medicine</th><th style="width:11%">Dose</th><th style="width:22%">When</th><th>Instructions</th><th style="width:11%">Cost</th></tr></thead><tbody>${rxRows || '<tr><td colspan="5">No medications</td></tr>'}</tbody></table>
