@@ -14,8 +14,8 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 
 /* ============ POST /api/transcribe — Groq Whisper proxy ============ */
 app.post('/api/transcribe', upload.single('file'), async (req, res) => {
-  const groqKey = req.headers['x-groq-key'];
-  if (!groqKey) return res.status(401).json({ error: 'Missing Groq API key' });
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) return res.status(500).json({ error: 'Server is missing GROQ_API_KEY configuration' });
   if (!req.file) return res.status(400).json({ error: 'Missing audio file' });
 
   try {
@@ -49,8 +49,9 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
 
 /* ============ POST /api/analyse — Claude clinical-structuring proxy ============ */
 app.post('/api/analyse', async (req, res) => {
-  const { transcript, patientDetails, apiKey } = req.body || {};
-  if (!apiKey) return res.status(401).json({ error: 'Missing Claude API key' });
+  const { transcript, patientDetails } = req.body || {};
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Server is missing ANTHROPIC_API_KEY configuration' });
   if (!transcript) return res.status(400).json({ error: 'Missing transcript or clinical notes' });
 
   const system = `You are a clinical documentation assistant for SugarCARE, a specialist diabetes management clinic in Malappuram, Kerala, India, run by HomoRx Healthtech. You assist doctors by structuring consultation data into clinical outputs.

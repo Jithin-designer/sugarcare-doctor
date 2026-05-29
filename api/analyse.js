@@ -7,8 +7,9 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { transcript, patientDetails, apiKey } = req.body || {};
-  if (!apiKey) return res.status(401).json({ error: 'Missing Claude API key' });
+  const { transcript, patientDetails } = req.body || {};
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Server is missing ANTHROPIC_API_KEY configuration' });
   if (!transcript) return res.status(400).json({ error: 'Missing transcript or clinical notes' });
 
   const system = `You are a clinical documentation assistant for SugarCARE, a specialist diabetes management clinic in Malappuram, Kerala, India, run by HomoRx Healthtech. You assist doctors by structuring consultation data into clinical outputs.
