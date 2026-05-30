@@ -137,6 +137,25 @@ app.post('/api/transcribe', upload.single('file'), async (req, res) => {
   }
 });
 
+function repairJSON(str) {
+  let open = 0;
+  let inString = false;
+  let escape = false;
+  for (const ch of str) {
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') inString = !inString;
+    if (!inString) {
+      if (ch === '{' || ch === '[') open++;
+      if (ch === '}' || ch === ']') open--;
+    }
+  }
+  let repaired = str.trimEnd();
+  if (repaired.endsWith(',')) repaired = repaired.slice(0, -1);
+  for (let i = 0; i < open; i++) repaired += '}';
+  return repaired;
+}
+
 /* ============ POST /api/analyse — Claude clinical-structuring proxy ============ */
 app.post('/api/analyse', async (req, res) => {
   const { transcript, patientDetails, selectedOutputs } = req.body || {};
@@ -228,7 +247,7 @@ Generate the clinical output JSON. Apply all three layers before reasoning. All 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 4000,
+        max_tokens: 8000,
         system,
         messages: [{ role: 'user', content: userMessage }]
       })
@@ -254,12 +273,17 @@ Generate the clinical output JSON. Apply all three layers before reasoning. All 
     let parsed;
     try {
       parsed = JSON.parse(clean);
-    } catch (parseErr) {
-      console.error('[analyse] JSON.parse failed:', parseErr.message);
-      return res.status(502).json({
-        error: 'Claude returned non-JSON or truncated output: ' + parseErr.message,
-        stopReason
-      });
+    } catch (e) {
+      try {
+        parsed = JSON.parse(repairJSON(clean));
+        console.log('[analyse] JSON repaired successfully');
+      } catch (e2) {
+        console.error('[analyse] JSON.parse failed:', e.message);
+        return res.status(502).json({
+          error: 'Claude returned non-JSON or truncated output: ' + e.message,
+          stopReason
+        });
+      }
     }
 
     return res.status(200).json(parsed);
