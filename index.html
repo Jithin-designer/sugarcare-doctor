@@ -3,22 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="color-scheme" content="light only">
 <title>SugarCARE Consult</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  color-scheme: light !important;
+}
+html {
+  color-scheme: light !important;
+  background: #ffffff !important;
+}
+body {
+  color-scheme: light !important;
+  background: #ffffff !important;
+  color: #1A0E50 !important;
+}
+@media (prefers-color-scheme: dark) {
+  html, body, * {
+    color-scheme: light !important;
+    background-color: unset;
+  }
+}
+:root {
+  color-scheme: light;
   --purple: #4A2FA0; --purple-light: #6B4FCF; --orange: #E86A1A;
   --bg: #F8F7FA; --surface: #FFFFFF; --text: #1A1A2E; --text-sec: #64648C;
   --border: #E2DFEB; --input-bg: #FFFFFF; --shadow: 0 1px 4px rgba(74,47,160,0.06);
   --green: #2E7D32; --red: #C62828; --amber: #E65100;
 }
-@media(prefers-color-scheme:dark){:root{
-  --bg:#0F0F1A;--surface:#1A1A2E;--text:#F0F0F8;--text-sec:#9898B8;
-  --border:#2A2A40;--input-bg:#22223A;--shadow:0 1px 4px rgba(0,0,0,0.3);
-  --green:#66BB6A;--red:#EF5350;--amber:#FFB74D;
-}}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;min-height:100vh;display:flex;flex-direction:column;}
 
@@ -147,7 +162,6 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .out-disclaimer{text-align:center;margin-top:1.5rem;padding-top:0.5rem;border-top:1px solid var(--border);font-size:0.72rem;color:var(--text-sec);}
 .out-flags{margin-top:0.5rem;}
 .out-flag{background:rgba(198,40,40,0.05);border-left:3px solid var(--red);padding:0.4rem 0.75rem;border-radius:0 4px 4px 0;font-size:0.82rem;margin-bottom:0.35rem;color:var(--red);}
-@media(prefers-color-scheme:dark){.out-flag{background:rgba(239,83,80,0.08);}}
 
 /* Prescription-only tab */
 .med-table{width:100%;border-collapse:collapse;margin-top:0.5rem;}
