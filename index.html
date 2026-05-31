@@ -94,6 +94,11 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .audio-divider{display:flex;align-items:center;gap:0.75rem;color:var(--text-sec);font-size:0.78rem;font-weight:600;margin:0.6rem 0;}
 .audio-divider::before,.audio-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
 .audio-hint{font-size:0.72rem;color:var(--text-sec);text-align:center;margin-top:0.6rem;}
+.paste-textarea{width:100%;padding:12px;border:1px solid rgba(74,47,160,0.2);border-radius:10px;font-family:'Outfit',system-ui,sans-serif;font-size:13px;resize:vertical;color:var(--text);background:var(--input-bg);line-height:1.5;}
+.paste-textarea:focus{outline:none;border-color:#4A2FA0;}
+.paste-hint{font-size:0.72rem;color:var(--text-sec);margin-top:0.5rem;text-align:center;}
+.paste-hint a{color:var(--purple);text-decoration:none;font-weight:600;}
+.audio-src-disabled{opacity:0.4;pointer-events:none;}
 .audio-btn-row{display:flex;gap:0.5rem;margin-top:0.75rem;}
 .audio-btn-row .btn{flex:1;}
 .rec-status{display:flex;align-items:center;gap:0.6rem;padding:0.85rem 1rem;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:0.9rem;font-weight:600;color:var(--text);}
@@ -396,9 +401,9 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
       <div class="mic-error" id="micError" style="display:none;"></div>
       <!-- Idle: stacked full-width Record / or / Choose File -->
       <div class="audio-state" id="audioIdle">
-        <button class="btn btn-purple audio-fullbtn" onclick="startRecording()">🎙️ Start Recording</button>
+        <button class="btn btn-purple audio-fullbtn" id="recordBtn" onclick="startRecording()">🎙️ Start Recording</button>
         <div class="audio-divider"><span>or</span></div>
-        <label class="btn btn-outline audio-fullbtn" for="audioFile">📁 Choose File</label>
+        <label class="btn btn-outline audio-fullbtn" id="fileLabel" for="audioFile">📁 Choose File</label>
         <input type="file" id="audioFile" accept=".mp3,.mp4,.wav,.m4a,.webm,audio/*" onchange="handleFileUpload()" hidden>
         <div class="audio-hint">.mp3, .mp4, .wav, .m4a, .webm · or record with your device mic</div>
       </div>
@@ -428,6 +433,20 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
       <!-- File uploaded -->
       <div class="audio-state" id="audioFileReady" style="display:none;">
         <div class="audio-ready"><span>✓</span><span id="fileText">File ready</span><button class="btn btn-outline btn-sm" onclick="resetAudio()" style="margin-left:auto;">Clear</button></div>
+      </div>
+
+      <!-- Paste option -->
+      <div class="audio-divider" id="pasteDivider"><span>or</span></div>
+      <div id="pasteArea">
+        <textarea id="pasteText" class="paste-textarea" rows="5"
+          placeholder="Paste DM Pro patient summary or any consultation notes here..."
+          oninput="handlePasteInput()"></textarea>
+        <div class="paste-hint" id="pasteClearHint" style="display:none;">
+          📋 Paste active — <a href="#" onclick="resetPaste(); return false;">Clear</a> to use audio instead
+        </div>
+        <div class="paste-hint" id="pasteAudioHint" style="display:none;">
+          Audio ready — <a href="#" onclick="resetAudio(); return false;">Clear audio</a> to paste instead
+        </div>
       </div>
     </div>
   </div>
@@ -664,12 +683,25 @@ function setAudioState(state) {
   ['audioIdle','audioRecording','audioRecorded','audioFileReady'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
-  if (state === 'idle') document.getElementById('audioIdle').style.display = 'block';
+  if (state === 'idle' || state === 'paste') document.getElementById('audioIdle').style.display = 'block';
   else if (state === 'recording' || state === 'paused') document.getElementById('audioRecording').style.display = 'block';
   else if (state === 'recorded') document.getElementById('audioRecorded').style.display = 'block';
   else if (state === 'file') document.getElementById('audioFileReady').style.display = 'block';
-  // Transcribe only allowed once we actually hold audio.
-  document.getElementById('transcribeBtn').disabled = !(state === 'recorded' || state === 'file');
+
+  // Transcribe allowed when audio is ready OR paste has content.
+  document.getElementById('transcribeBtn').disabled = !(state === 'recorded' || state === 'file' || state === 'paste');
+
+  // Paste state: disable Record + Upload, show clear hint.
+  const audioDisabled = state === 'paste';
+  document.getElementById('recordBtn').classList.toggle('audio-src-disabled', audioDisabled);
+  document.getElementById('fileLabel').classList.toggle('audio-src-disabled', audioDisabled);
+  document.getElementById('pasteClearHint').style.display = audioDisabled ? 'block' : 'none';
+
+  // Audio active states: disable paste textarea + divider, show clear-audio hint.
+  const pasteDisabled = state === 'recording' || state === 'paused' || state === 'recorded' || state === 'file';
+  document.getElementById('pasteText').classList.toggle('audio-src-disabled', pasteDisabled);
+  document.getElementById('pasteDivider').classList.toggle('audio-src-disabled', pasteDisabled);
+  document.getElementById('pasteAudioHint').style.display = pasteDisabled ? 'block' : 'none';
 }
 
 function startTimer() { recInterval = setInterval(() => { recSeconds++; updateTimer(); }, 1000); }
@@ -770,6 +802,16 @@ function resetAudio() {
   setAudioState('idle');
 }
 
+function handlePasteInput() {
+  const text = document.getElementById('pasteText').value.trim();
+  setAudioState(text ? 'paste' : 'idle');
+}
+
+function resetPaste() {
+  document.getElementById('pasteText').value = '';
+  setAudioState('idle');
+}
+
 /* ============ TRANSCRIBE & ANALYSE ============ */
 function setStep(prefix, num, state) {
   const el = document.getElementById(prefix + num);
@@ -836,7 +878,44 @@ function hideAnalyseBar(barId) {
 }
 
 async function transcribeAndAnalyse() {
-  if (!audioBlob) return;
+  const pasteContent = document.getElementById('pasteText').value.trim();
+
+  // Paste path: skip transcription, send paste text directly to /api/analyse.
+  if (!audioBlob && pasteContent) {
+    const prog = document.getElementById('progressBar');
+    prog.classList.add('visible');
+    ['step1','step2','step3'].forEach(s => { const el = document.getElementById(s); el.className = 'progress-step'; el.querySelector('.dot').textContent = el.id.replace('step',''); });
+    document.getElementById('transcribeBtn').disabled = true;
+    document.getElementById('audioOutput').classList.remove('visible');
+    document.getElementById('audioOutput').innerHTML = '';
+    setStep('step', 1, 'done');
+    setStep('step', 2, 'active');
+    startAnalyseBar('analyseBar');
+    try {
+      const patient = getAudioPatient();
+      const selectedKeys = getCheckedKeys('selectorAudio');
+      const aRes = await fetch('/api/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript: pasteContent, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+      });
+      const aData = await aRes.json();
+      if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
+      finishAnalyseBar('analyseBar');
+      setStep('step', 2, 'done');
+      setStep('step', 3, 'done');
+      renderOutput('audioOutput', aData, patient, selectedKeys);
+    } catch (e) {
+      hideAnalyseBar('analyseBar');
+      const active = document.querySelector('.progress-step.active');
+      if (active) active.className = 'progress-step error';
+      showToast('Error: ' + e.message);
+    }
+    document.getElementById('transcribeBtn').disabled = false;
+    return;
+  }
+
+  if (!audioBlob) { showToast('Please record audio, upload a file, or paste patient notes.'); return; }
 
   const prog = document.getElementById('progressBar');
   prog.classList.add('visible');
