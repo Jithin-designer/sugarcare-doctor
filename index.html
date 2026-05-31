@@ -441,12 +441,6 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
         <textarea id="pasteText" class="paste-textarea" rows="5"
           placeholder="Paste DM Pro patient summary or any consultation notes here..."
           oninput="handlePasteInput()"></textarea>
-        <div class="paste-hint" id="pasteClearHint" style="display:none;">
-          📋 Paste active — <a href="#" onclick="resetPaste(); return false;">Clear</a> to use audio instead
-        </div>
-        <div class="paste-hint" id="pasteAudioHint" style="display:none;">
-          Audio ready — <a href="#" onclick="resetAudio(); return false;">Clear audio</a> to paste instead
-        </div>
       </div>
     </div>
   </div>
@@ -677,31 +671,23 @@ function getSupportedMime() {
   return '';
 }
 
-// Single source of truth: shows the right block AND gates the Transcribe & Analyse button.
+function updateTranscribeBtn() {
+  const hasAudio = audioState === 'recorded' || audioState === 'file';
+  const hasPaste = document.getElementById('pasteText').value.trim().length > 0;
+  document.getElementById('transcribeBtn').disabled = !(hasAudio || hasPaste);
+}
+
+// Single source of truth: shows the right audio block AND re-gates the Transcribe button.
 function setAudioState(state) {
   audioState = state;
   ['audioIdle','audioRecording','audioRecorded','audioFileReady'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
-  if (state === 'idle' || state === 'paste') document.getElementById('audioIdle').style.display = 'block';
+  if (state === 'idle') document.getElementById('audioIdle').style.display = 'block';
   else if (state === 'recording' || state === 'paused') document.getElementById('audioRecording').style.display = 'block';
   else if (state === 'recorded') document.getElementById('audioRecorded').style.display = 'block';
   else if (state === 'file') document.getElementById('audioFileReady').style.display = 'block';
-
-  // Transcribe allowed when audio is ready OR paste has content.
-  document.getElementById('transcribeBtn').disabled = !(state === 'recorded' || state === 'file' || state === 'paste');
-
-  // Paste state: disable Record + Upload, show clear hint.
-  const audioDisabled = state === 'paste';
-  document.getElementById('recordBtn').classList.toggle('audio-src-disabled', audioDisabled);
-  document.getElementById('fileLabel').classList.toggle('audio-src-disabled', audioDisabled);
-  document.getElementById('pasteClearHint').style.display = audioDisabled ? 'block' : 'none';
-
-  // Audio active states: disable paste textarea + divider, show clear-audio hint.
-  const pasteDisabled = state === 'recording' || state === 'paused' || state === 'recorded' || state === 'file';
-  document.getElementById('pasteText').classList.toggle('audio-src-disabled', pasteDisabled);
-  document.getElementById('pasteDivider').classList.toggle('audio-src-disabled', pasteDisabled);
-  document.getElementById('pasteAudioHint').style.display = pasteDisabled ? 'block' : 'none';
+  updateTranscribeBtn();
 }
 
 function startTimer() { recInterval = setInterval(() => { recSeconds++; updateTimer(); }, 1000); }
@@ -803,13 +789,12 @@ function resetAudio() {
 }
 
 function handlePasteInput() {
-  const text = document.getElementById('pasteText').value.trim();
-  setAudioState(text ? 'paste' : 'idle');
+  updateTranscribeBtn();
 }
 
 function resetPaste() {
   document.getElementById('pasteText').value = '';
-  setAudioState('idle');
+  updateTranscribeBtn();
 }
 
 /* ============ TRANSCRIBE & ANALYSE ============ */
@@ -954,7 +939,11 @@ async function transcribeAndAnalyse() {
     if (!data.transcript && data.error) throw new Error(data.error);
 
     setStep('step', 1, 'done');
-    document.getElementById('transcriptText').value = data.transcript;
+    const pasteExtra = document.getElementById('pasteText').value.trim();
+    const finalTranscript = pasteExtra
+      ? data.transcript + '\n\nAdditional context: ' + pasteExtra
+      : data.transcript;
+    document.getElementById('transcriptText').value = finalTranscript;
     document.getElementById('transcriptBox').style.display = 'block';
 
     // Step 2: Analyse
@@ -965,7 +954,7 @@ async function transcribeAndAnalyse() {
     const aRes = await fetch('/api/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript: data.transcript, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+      body: JSON.stringify({ transcript: finalTranscript, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
     });
     const aData = await aRes.json();
     if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
