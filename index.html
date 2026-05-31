@@ -399,12 +399,21 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
     <h3>Audio Input</h3>
     <div class="audio-input no-print" id="audioInput">
       <div class="mic-error" id="micError" style="display:none;"></div>
-      <!-- Idle: stacked full-width Record / or / Choose File -->
+      <!-- Paste option (first) -->
+      <div id="pasteArea">
+        <textarea id="pasteText" class="paste-textarea" rows="5"
+          placeholder="Paste DM Pro patient summary or any consultation notes here..."
+          oninput="handlePasteInput()"></textarea>
+      </div>
+
+      <div class="audio-divider"><span>or</span></div>
+
+      <!-- Idle: Upload Audio File / or / Start Recording -->
       <div class="audio-state" id="audioIdle">
-        <button class="btn btn-purple audio-fullbtn" id="recordBtn" onclick="startRecording()">🎙️ Start Recording</button>
-        <div class="audio-divider"><span>or</span></div>
-        <label class="btn btn-outline audio-fullbtn" id="fileLabel" for="audioFile">📁 Choose File</label>
+        <label class="btn btn-outline audio-fullbtn" id="fileLabel" for="audioFile">📁 Upload Audio File</label>
         <input type="file" id="audioFile" accept=".mp3,.mp4,.wav,.m4a,.webm,audio/*" onchange="handleFileUpload()" hidden>
+        <div class="audio-divider"><span>or</span></div>
+        <button class="btn btn-purple audio-fullbtn" id="recordBtn" onclick="startRecording()">🎙️ Start Recording</button>
         <div class="audio-hint">.mp3, .mp4, .wav, .m4a, .webm · or record with your device mic</div>
       </div>
 
@@ -433,14 +442,6 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
       <!-- File uploaded -->
       <div class="audio-state" id="audioFileReady" style="display:none;">
         <div class="audio-ready"><span>✓</span><span id="fileText">File ready</span><button class="btn btn-outline btn-sm" onclick="resetAudio()" style="margin-left:auto;">Clear</button></div>
-      </div>
-
-      <!-- Paste option -->
-      <div class="audio-divider" id="pasteDivider"><span>or</span></div>
-      <div id="pasteArea">
-        <textarea id="pasteText" class="paste-textarea" rows="5"
-          placeholder="Paste DM Pro patient summary or any consultation notes here..."
-          oninput="handlePasteInput()"></textarea>
       </div>
     </div>
   </div>
