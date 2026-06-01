@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillText = fs.readFileSync(path.join(__dirname, 'kerala_context_SKILL.md'), 'utf8');
+const skillText = fs.readFileSync(path.join(__dirname, 'SKILL2.md'), 'utf8');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -169,11 +169,16 @@ You are operating inside SugarCARE Consult — a clinical documentation tool. Th
 
 Apply the full Cardiometabolic Clinical Algorithm v4 before generating output. Run all three layers (Territory → Psychosocial → Clinical Core) internally before writing any output.
 
-Respond ONLY in valid JSON. No markdown, no preamble, no explanation outside the JSON. The JSON must be complete and valid — prioritise closing the JSON over adding detail if approaching token limits.
+Respond ONLY in valid JSON. No markdown, no preamble, no explanation outside the JSON.
 
-Generate ONLY the sections listed in selectedOutputs. Return empty object {} for any section not requested.
+The skill auto-detects the operating mode from the input:
+- SUGGEST mode (no existing Rx in the input): populate idealPrescription, idealDiet, idealExercise, idealFollowUpPlan
+- AUDIT / REVIEW mode (existing prescription is present in the input): populate the audit section with gravity-graded findings; also include idealPrescription with corrected recommendations
+- Always populate context regardless of mode
 
-Output schema:
+Fill the JSON fields appropriate to the detected mode. Fields that do not apply to the mode may be omitted or set to null.
+
+Available JSON fields:
 {
   "context": {
     "summary": "2-3 sentence narrative clinical picture — not a list",
@@ -181,6 +186,22 @@ Output schema:
     "deviations": ["abnormal values with targets"],
     "internalIssues": ["comorbidities, drug risks, psychosocial barriers, alternative medicine flags"],
     "redFlags": ["urgent items requiring immediate action"]
+  },
+  "audit": {
+    "mode": "SUGGEST | AUDIT | REVIEW | FLAG | SCREEN | RISK",
+    "summary": "one-paragraph narrative summary of the audit",
+    "findings": [
+      {
+        "finding": "description of the variance from guideline standard",
+        "direction": "omitted | under-dosed | over-dosed | wrong-drug | missing | contraindicated | appropriate",
+        "gravity": "Grade 1 | Grade 2 | Grade 3",
+        "standard": "what the algorithm recommends for this patient",
+        "source": "guideline name and year",
+        "grade": "[1A] | [1B] | [1C] | [2A] | [2B] | [2C] | [GPP]",
+        "correction": "recommended corrective action"
+      }
+    ],
+    "gravityTally": { "grade3": 0, "grade2": 0, "grade1": 0, "appropriate": 0 }
   },
   "idealPrescription": {
     "medications": [
@@ -235,7 +256,7 @@ Selected outputs: ${JSON.stringify(requested)}
 Consultation transcript / clinical notes:
 ${transcript}
 
-Generate the clinical output JSON. Apply all three layers before reasoning. All drug names in generic form with brand name in brackets. Doses in standard Indian clinical notation. Respond in valid JSON only — complete and well-formed.`;
+Generate the clinical output JSON. Apply all three layers before reasoning. All drug names in generic form with brand name in brackets. Doses in standard Indian clinical notation. Respond in valid JSON only.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -247,7 +268,7 @@ Generate the clinical output JSON. Apply all three layers before reasoning. All 
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
-        max_tokens: 8000,
+        max_tokens: 16000,
         system,
         messages: [{ role: 'user', content: userMessage }]
       })
