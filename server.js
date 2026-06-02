@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillText = fs.readFileSync(path.join(__dirname, 'SKILL2.md'), 'utf8');
+const formularyText = fs.readFileSync(path.join(__dirname, 'formulary.md'), 'utf8');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -165,20 +166,34 @@ app.post('/api/analyse', async (req, res) => {
 
   const outputInstructions = `## OUTPUT FORMAT FOR THIS TOOL
 
-You are operating inside SugarCARE Consult — a clinical documentation tool. The patient data above is a transcript or summary from a real consultation.
+You are operating inside SugarCARE Consult — a clinical documentation tool. The patient data is from a real consultation.
 
-Apply the full Cardiometabolic Clinical Algorithm v4 before generating output. Run all three layers (Territory → Psychosocial → Clinical Core) internally before writing any output.
+Apply the full Cardiometabolic Clinical Algorithm v4. Run all three layers (Territory → Psychosocial → Clinical Core) before writing output.
 
-Respond ONLY in valid JSON. No markdown, no preamble, no explanation outside the JSON.
+Respond ONLY in valid JSON. No markdown, no preamble, no text outside the JSON object.
 
-The skill auto-detects the operating mode from the input:
-- SUGGEST mode (no existing Rx in the input): populate idealPrescription, idealDiet, idealExercise, idealFollowUpPlan
-- AUDIT / REVIEW mode (existing prescription is present in the input): populate the audit section with gravity-graded findings; also include idealPrescription with corrected recommendations
-- Always populate context regardless of mode
+## FORMULARY RULE — STRICT
+The SugarCARE drug formulary is provided above. Prescribe ONLY from it.
+- Use the EXACT brand name, salt content, MRP per unit, and pack size as listed — no invention, no approximation.
+- If the clinically correct drug or class is absent from the formulary: do NOT substitute silently. Record it in audit.findings with direction "not-stocked", then prescribe the closest available formulary alternative with formularyStatus "in-formulary".
+- When multiple brands share the same salt, select the lowest-MRP option unless a clinical reason (tolerability, dose form, strength) justifies otherwise.
+- Never write "JanAushadhi", never write a cost tier label, never write a price not listed in the formulary.
+- Every medication entry must have formularyStatus: "in-formulary" or "indicated-not-stocked".
 
-Fill the JSON fields appropriate to the detected mode. Fields that do not apply to the mode may be omitted or set to null.
+## CORE SECTIONS — ALWAYS GENERATED
+context, audit, idealWorkup, and idealPrescription are MANDATORY on every run regardless of selectedOutputs.
+selectedOutputs may only control idealDiet, idealExercise, and idealFollowUpPlan.
 
-Available JSON fields:
+## AUDIT — ALWAYS RUN
+Always audit the prescription present in the transcript:
+- If an existing Rx is found: populate audit.findings with gravity-graded findings for every variance.
+- If no existing Rx is present: set audit.mode = "SUGGEST", audit.findings = [], audit.summary = "No existing prescription — SUGGEST mode."
+
+## IDEAL WORKUP — ALWAYS GENERATED
+List every investigation and anthropometric measurement that is absent but clinically required to complete a safe workup, reach a diagnosis, or justify evidence-based therapy.
+
+Available JSON fields — all four core sections are mandatory; idealDiet, idealExercise, idealFollowUpPlan are included only if in selectedOutputs:
+
 {
   "context": {
     "summary": "2-3 sentence narrative clinical picture — not a list",
@@ -193,26 +208,42 @@ Available JSON fields:
     "findings": [
       {
         "finding": "description of the variance from guideline standard",
-        "direction": "omitted | under-dosed | over-dosed | wrong-drug | missing | contraindicated | appropriate",
+        "direction": "omitted | under-dosed | over-dosed | wrong-drug | missing | contraindicated | not-stocked | appropriate",
         "gravity": "Grade 1 | Grade 2 | Grade 3",
         "standard": "what the algorithm recommends for this patient",
-        "source": "guideline name and year",
+        "source": "guideline name + year",
         "grade": "[1A] | [1B] | [1C] | [2A] | [2B] | [2C] | [GPP]",
         "correction": "recommended corrective action"
       }
     ],
     "gravityTally": { "grade3": 0, "grade2": 0, "grade1": 0, "appropriate": 0 }
   },
+  "idealWorkup": {
+    "investigations": [
+      {
+        "test": "test name",
+        "reason": "clinical reason",
+        "purpose": "workup | diagnosis | therapy-justification",
+        "priority": "urgent | this-visit | routine",
+        "actionTrigger": "what result changes management, e.g. CK >5x ULN → stop statin"
+      }
+    ],
+    "anthropometryMissing": ["e.g. waist circumference"],
+    "summary": "one line: what cannot be safely concluded until these return"
+  },
   "idealPrescription": {
     "medications": [
       {
-        "drug": "Generic name (Brand / JanAushadhi alternative)",
+        "brand": "exact brand name from formulary",
+        "salt": "salt content + strength from formulary, e.g. Metformin (500mg)",
         "dose": "e.g. 500mg",
-        "frequency": "e.g. Once daily with dinner",
+        "frequency": "e.g. Twice daily with meals",
         "duration": "e.g. 3 months",
         "instructions": "concise patient instruction",
-        "costTier": "JanAushadhi / Low / Mid / High",
-        "rationale": "one line — why this drug for this patient"
+        "mrp": "MRP per unit exactly as in formulary, e.g. ₹1.98/unit",
+        "packSize": "pack size from formulary",
+        "rationale": "one line — why this drug for this patient",
+        "formularyStatus": "in-formulary | indicated-not-stocked"
       }
     ],
     "specialInstructions": "string",
@@ -244,11 +275,13 @@ Available JSON fields:
   }
 }`;
 
-  const system = skillText + '\n\n' + outputInstructions;
+  const system = skillText + '\n\n' + formularyText + '\n\n' + outputInstructions;
 
-  const requested = Array.isArray(selectedOutputs) && selectedOutputs.length
-    ? selectedOutputs
-    : ['context', 'idealPrescription', 'idealDiet', 'idealExercise', 'idealFollowUpPlan'];
+  const coreOutputs = ['context', 'audit', 'idealWorkup', 'idealPrescription'];
+  const optionalOutputs = Array.isArray(selectedOutputs) && selectedOutputs.length
+    ? selectedOutputs.filter(k => ['idealDiet', 'idealExercise', 'idealFollowUpPlan'].includes(k))
+    : ['idealDiet', 'idealExercise', 'idealFollowUpPlan'];
+  const requested = [...coreOutputs, ...optionalOutputs];
 
   const userMessage = `Patient details: ${JSON.stringify(patientDetails || {})}
 Selected outputs: ${JSON.stringify(requested)}
@@ -256,7 +289,7 @@ Selected outputs: ${JSON.stringify(requested)}
 Consultation transcript / clinical notes:
 ${transcript}
 
-Generate the clinical output JSON. Apply all three layers before reasoning. All drug names in generic form with brand name in brackets. Doses in standard Indian clinical notation. Respond in valid JSON only.`;
+ALWAYS audit the existing prescription in the transcript AND produce the full ideal plan. Prescribe ONLY from the formulary using the exact brand name, salt, and MRP. Respond in valid JSON only.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
