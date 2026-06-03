@@ -275,7 +275,11 @@ Available JSON fields — all four core sections are mandatory; idealDiet, ideal
   }
 }`;
 
-  const system = skillText + '\n\n' + formularyText + '\n\n' + outputInstructions;
+  const system = [
+    { type: 'text', text: skillText },
+    { type: 'text', text: formularyText },
+    { type: 'text', text: outputInstructions, cache_control: { type: 'ephemeral', ttl: '1h' } }
+  ];
 
   const coreOutputs = ['context', 'audit', 'idealWorkup', 'idealPrescription'];
   const optionalOutputs = Array.isArray(selectedOutputs) && selectedOutputs.length
@@ -297,10 +301,11 @@ ALWAYS audit the existing prescription in the transcript AND produce the full id
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
+        'anthropic-beta': 'prompt-caching-2024-07-31'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
+        model: 'claude-sonnet-4-6',
         max_tokens: 16000,
         system,
         messages: [{ role: 'user', content: userMessage }]
@@ -317,7 +322,7 @@ ALWAYS audit the existing prescription in the transcript AND produce the full id
     const stopReason = data.stop_reason;
 
     // Log non-sensitive response metadata (visible in server logs) to diagnose truncation.
-    console.log('[analyse] stop_reason:', stopReason, '| output_tokens:', data.usage?.output_tokens);
+    console.log('[analyse] stop_reason:', stopReason, '| output_tokens:', data.usage?.output_tokens, '| cache_create:', data.usage?.cache_creation_input_tokens ?? 0, '| cache_read:', data.usage?.cache_read_input_tokens ?? 0);
     if (stopReason === 'max_tokens') {
       console.warn('[analyse] response was truncated by max_tokens — JSON will be incomplete');
     }
