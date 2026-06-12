@@ -1,6 +1,6 @@
 ---
 name: cardiometabolic-clinical-algorithm
-description: Specialist-depth clinical decision support for cardiometabolic disease in South India / Kerala (SugarCARE / HomoRx Healthtech context) and India-wide. Covers T2DM (T1, T2, LADA, MODY, GDM, secondary), HTN, dyslipidaemia, CKD, MASLD, obesity, PCOS, thyroid, gout. Now operates with three pre-processing layers before clinical reasoning: Layer 1 (Territory: Kerala/South India TOFI phenotype, diet, festival calendar, gender dynamics), Layer 2 (Psychosocial: Acceptance Gap, alternative medicine screen, SES barriers, adherence framing), Layer 3 (Clinical Core: four pillars + decision gates + drug intelligence). Output modes: SUGGEST, AUDIT (variance table + Gravity grading), FLAG, REVIEW, SCREEN, RISK. SugarCARE institutional protocol hardwired. GRADE evidence on all recommendations. India brands, cost tiers, CDSCO prescriber hierarchy. Guideline manifest: ADA 2026, RSSDI 2024, KDIGO 2022, ESC/ESH 2024, LAI 2024, ATA 2023, ICMR. Institution: SugarCARE Clinics, HomoRx Healthtech, Kerala. CMO: Dr. Rakesh KR.
+description: Specialist-depth clinical decision support for cardiometabolic disease in South India / Kerala (SugarCARE / HomoRx Healthtech context) and India-wide. Covers T2DM (T1, T2, LADA, MODY, GDM, secondary), HTN, dyslipidaemia, CKD, MASLD, obesity, PCOS, thyroid, gout. Three pre-processing layers: Layer 1 (Territory: Kerala/South India TOFI phenotype, diet, festival calendar, gender dynamics), Layer 2 (Psychosocial: Acceptance Gap, alternative medicine screen, SES barriers, adherence framing), Layer 3 (Clinical Core: four pillars + decision gates + drug intelligence). Output modes: SUGGEST, AUDIT (variance table + Gravity grading), FLAG, REVIEW, SCREEN, RISK, CANDIDATE (proactive GLP-1 RA / incretin therapy candidate identification). Section C-7 added: full GLP-1 RA / incretin protocol — entry criteria, titration, diet and exercise overlay, monitoring, exit strategy, post-discontinuation management, India affordability tiers (post-patent March 2026), candidate identification logic. Drug intelligence updated: semaglutide post-generic pricing, tirzepatide patent status 2031–2033, liraglutide generic. Trial evidence updated: SURMOUNT-5, FLOW, SELECT, SURPASS-CVOT, SURMOUNT-4 rebound data. SugarCARE institutional protocol hardwired. GRADE evidence on all recommendations. India brands, cost tiers, CDSCO prescriber hierarchy. Guideline manifest: ADA 2026, RSSDI 2024, KDIGO 2022, ESC/ESH 2024, LAI 2024, ATA 2023, ICMR. Institution: SugarCARE Clinics, HomoRx Healthtech, Kerala. CMO: Dr. Rakesh KR.
 ---
 
 # Cardiometabolic Clinical Algorithm (v4 – SugarCARE Kerala Edition)
@@ -9,7 +9,7 @@ A specialist-depth clinical decision support framework for cardiometabolic disea
 
 **Institution:** SugarCARE Clinics, HomoRx Healthtech Pvt Ltd, Kerala, India
 **Clinical Lead:** Dr. Rakesh KR, CMO
-**Version:** 4.0 | **Date:** May 2026 | **Upgraded from:** v3 (India Endo-grade)
+**Version:** 4.1 | **Date:** June 2026 | **Upgraded from:** v4.0 | **Changes:** Section C-7 (GLP-1 RA full protocol + candidate identification + post-patent India market), CANDIDATE output mode, self-check updated to 18 points
 **Status:** Active — Quarterly review required
 
 ---
@@ -33,6 +33,7 @@ The skill auto-detects depth from the query and delivers appropriate output. Use
 | **Endo-deep** | Specialist phenotypes, atypical presentation, multi-drug optimisation, refractory cases | Full pillars + all gates + extended differential + specialist drug intel + monitoring + mechanism deep-dive |
 | **GP-mode** | "for primary care / GP / family physician / clinic setting" | Standard pillars condensed; emphasise referral triggers; no specialist drugs |
 | **Endo-mode** | "as endocrinologist / specialist / consultant level" | Force full specialist depth regardless of query |
+| **CANDIDATE** | Proactive scan query: "who should be on GLP-1 RA" / "find incretin candidates" / patient list provided | Run C-7.1 entry criteria against patient data; output ranked candidate list with indication, priority tier, affordability tier, and recommended agent |
 
 User can request switching: `"give me endo-deep on this"` or `"GP-mode please"`.
 
@@ -620,9 +621,12 @@ Serious AEs:            Acute pancreatitis (rare); MTC (rodent signal, not confi
                         retinopathy worsening (transient with rapid HbA1c drop)
 Interactions:           Slows absorption of co-meds (take other oral meds before
                         oral sema); insulin/SU — hypo risk; warfarin — INR check
-Cost tier:              Oral 14 mg ~₹9000/mo (Very High); injectable Ozempic
-                        ~₹9000–12000/mo (Very High); Wegovy ~₹17000–24000/mo (Very High)
-                        — major adherence barrier in India outside metro-affluent
+Cost tier:              POST-PATENT (March 2026): Generic semaglutide SC vial (Natco Semanat)
+                        ~₹1,290–1,800/mo (Entry); Generic pen device ~₹3,000–5,000/mo (Mid)
+                        Innovator Ozempic post-37% price cut: ~₹8,800–10,850/mo (High)
+                        Wegovy 2.4mg innovator: ~₹17,000–24,000/mo (Very High)
+                        — patent expired March 20 2026; 40+ Indian manufacturers entering;
+                          generic vial format is now practice-changing for Tier-2/3 India
 Pearls:                 - Oral semaglutide must be taken on EMPTY STOMACH with sip
                           of water, wait 30 min before any food/drink — critical
                           for absorption
@@ -657,8 +661,9 @@ Common AEs:             GI (similar to GLP-1, slightly more); injection site rea
 Serious AEs:            Pancreatitis (rare); MTC (rodent only); gallbladder events;
                         retinopathy worsening transient
 Interactions:           Same as GLP-1 RA
-Cost tier:              Very High (₹14000–17000/mo at launch; expected ↓ with
-                        competition)
+Cost tier:              Very High (₹14,000–17,000/mo; innovator only as of June 2026)
+                        India patent ~2031–2033 — no generic tirzepatide announced;
+                        no price reduction expected before 2031
 Pearls:                 - Superior weight loss vs semaglutide (SURMOUNT trials —
                           ~22% mean body weight loss at 72 wk on 15 mg)
                         - In India: high-cost barrier limits to affluent urban use
@@ -668,6 +673,295 @@ Pearls:                 - Superior weight loss vs semaglutide (SURMOUNT trials �
                         - First dual incretin; pipeline includes triple (GIP/GLP-1/
                           glucagon) and oral formulations
 ```
+
+
+
+---
+
+## SECTION C-7 – GLP-1 RA / Incretin Therapy Protocol
+
+*(Covers: semaglutide, liraglutide, dulaglutide, tirzepatide — entry criteria, titration, diet and exercise overlay, monitoring, exit strategy, post-discontinuation management, India market and affordability, candidate identification logic)*
+
+---
+
+### C-7.1 Entry Criteria and Patient Selection
+
+**Initiate GLP-1 RA / incretin therapy when one or more of the following are present:**
+
+| Indication | Agent of choice | Evidence |
+|---|---|---|
+| T2DM + established ASCVD | Semaglutide SC 1mg (SUSTAIN-6) | [1A] |
+| T2DM + CKD any stage ≥G2A2 (eGFR <60 or ACR >30) | Semaglutide SC 1mg (FLOW trial — first dedicated renal CVOT for GLP-1 RA) | [1A] |
+| T2DM + HFpEF + obesity | Semaglutide SC 2.4mg (STEP-HFpEF) | [1A] |
+| T2DM + obesity (BMI ≥25 ICMR) + HbA1c above target on ≥2 OADs | Semaglutide or tirzepatide | [1A] |
+| Obesity without T2DM (BMI ≥27.5 + comorbidity OR ≥32.5) | Semaglutide 2.4mg / tirzepatide 15mg | [1A] |
+| T2DM + obesity — maximum weight loss is primary goal | Tirzepatide (SURMOUNT-5: superior to sema; ~47% vs ~36% achieving ≥15% body weight loss at 72 wk, NEJM 2025) | [1A] |
+| Overweight/obese + established CVD — no T2DM | Semaglutide 2.4mg (SELECT trial: 20% CVD event reduction, 73% reduction in incident diabetes) | [1A] |
+
+**Pre-initiation checklist — Category 1 documentation required:**
+- BMI and waist circumference documented (ICMR cut-offs — not WHO)
+- HbA1c, FBS/PPBS current (within 3 months)
+- eGFR and urine ACR — GLP-1 RA safe to eGFR 15, no dose adjustment required
+- Dilated fundus exam completed or referral scheduled — rapid HbA1c correction >2% in 3 months carries transient diabetic retinopathy worsening signal; baseline fundus mandatory before initiating [Category 1]
+- Personal/family history of medullary thyroid carcinoma (MTC) or MEN-2 — absolute contraindication to all GLP-1 RA and tirzepatide; document negative screen [Category 1]
+- Gastroparesis history or active symptoms — relative contraindication; document if present
+- Pregnancy ruled out; contraception counselled if reproductive-age female — stop GLP-1 RA ≥2 months pre-conception [Category 1]
+- Baseline lipase only if prior pancreatitis history — not routine
+- Patient counselled on long-term commitment: GLP-1 RA treats obesity/T2DM chronically; stopping = weight rebound + glycaemic rebound [Category 1 documentation of counselling]
+- CDSCO Category 3: prescriber qualification (physician/endocrinologist) documented
+
+---
+
+### C-7.2 Initiation and Titration Protocol
+
+**Semaglutide SC — T2DM / CKD / ASCVD / HFpEF / obesity indication:**
+```
+Start:     0.25 mg SC weekly × 4 weeks
+Step 2:    0.5 mg SC weekly × 4 weeks
+Step 3:    1.0 mg SC weekly — maintenance for CKD/ASCVD CV-renal benefit [1A]
+Step 4:    1.7 mg SC weekly × 4 weeks (obesity indication — continue escalation)
+Step 5:    2.0 mg SC weekly × 4 weeks
+Target:    2.4 mg SC weekly (Wegovy obesity indication)
+Hold rule: If GI intolerance at any step — hold at current dose ×4 weeks before next step-up
+```
+
+**Semaglutide oral (Rybelsus) — T2DM only; NOT approved in India for obesity (CDSCO):**
+```
+Start:     3 mg/day PO × 30 days
+Step 2:    7 mg/day PO × 30 days
+Target:    14 mg/day PO
+CRITICAL:  Empty stomach + sip plain water only + wait 30 min before any food/other drug
+           Non-negotiable for absorption — patient counselling mandatory
+```
+
+**Tirzepatide SC (Mounjaro) — T2DM / obesity:**
+```
+Start:     2.5 mg SC weekly × 4 weeks
+Step 2:    5.0 mg SC weekly × 4 weeks
+Step 3:    7.5 mg SC weekly × 4 weeks
+Step 4:    10 mg SC weekly × 4 weeks
+Step 5:    12.5 mg SC weekly × 4 weeks
+Target:    15 mg SC weekly (maximum)
+Hold rule: Do not escalate until current dose tolerated; minimum 4 weeks at each step
+```
+
+**GI management — the titration wall:**
+- Nausea peaks at each dose step, typically resolves by week 2–4 at that dose
+- Brief patient at every step-up: small meals, avoid high-fat/spicy food during titration week, maintain hydration
+- Slow titration prevents ~80% of GI-related discontinuations — never rush escalation
+- If vomiting + epigastric/back pain: STOP, rule out acute pancreatitis (check serum lipase) before restarting
+- Liraglutide (daily injection) — higher GI burden than weekly agents; now that generic weekly semaglutide is available at comparable or lower cost, prefer semaglutide SC over liraglutide as first GLP-1 RA choice unless specific indication
+
+**SU dose adjustment at initiation — mandatory:**
+- GLP-1 RA adds glucose-dependent insulin secretion on top of SU → compounded hypoglycaemia risk
+- Reduce SU by 50% at GLP-1 RA initiation
+- Reassess at 4-week titration visit — if HbA1c at or below target at 3 months, consider stopping SU entirely
+- Document SU dose reduction as Category 1 action
+
+---
+
+### C-7.3 Diet and Exercise Overlay — GLP-1 RA Specific
+
+> This is a supplemental overlay on top of the standard cardiometabolic diet/exercise prescription. GLP-1 RA drives significant fat and weight loss — without this overlay, lean mass is disproportionately lost and clinical benefit is partially reversed.
+
+**Protein — non-negotiable upward revision:**
+- Standard cardiometabolic non-CKD target: 0.8–1.0 g/kg/day
+- On GLP-1 RA (non-CKD): **1.2–1.5 g/kg/day**
+- Rationale: GLP-1 RA suppresses appetite indiscriminately — patients reduce total intake but cut carbohydrates and fat less consciously than protein (rice and familiar foods feel more filling even in small amounts); result is ~30–40% of weight lost is lean mass unless protein is actively prescribed
+- Kerala-specific sources: fish curry (high protein, acceptable fat), eggs, cooked dal, paneer in moderation, groundnuts as snack; reduce rice portions with the appetite suppression window — "the drug reduces appetite; use that window to cut rice and sweets, not protein"
+- CKD patients: protein target remains 0.8 g/kg — do not exceed; GLP-1 RA is still indicated but protein prescription does not change
+
+**Meal structure on gastric emptying delay:**
+- GLP-1 RA slows gastric emptying — early satiety, rapid fullness
+- Patients commonly skip meals when not hungry — on insulin/SU background this causes hypoglycaemia
+- Prescribe: 3 structured meals minimum regardless of appetite level; 4–5 small meals if early satiety is severe
+- Oral semaglutide: the 30-minute pre-food window means breakfast timing shifts — adjust SU/insulin timing accordingly
+- Avoid large single meals — portion-controlled smaller servings, higher frequency
+
+**Resistance exercise — mandatory co-prescription from day 1:**
+- Aerobic exercise alone during GLP-1 RA-driven weight loss accelerates lean mass loss
+- Prescribe resistance training from week 1, not "when stable"
+- Minimum: 2×/week, all major muscle groups, bodyweight or light resistance
+- Kerala context: chair squats, wall push, stair climbing, manual farm/household work counts
+- Patient framing: "The injection reduces fat. The exercise preserves your muscle. Both are needed."
+- Monitor: if progressive weakness, fatigue, or functional decline develops during rapid weight loss — screen with SARC-F; if positive consider DEXA; intensify protein + resistance prescription
+
+**Hydration:**
+- GLP-1 RA reduces thirst alongside appetite — dehydration risk underappreciated
+- Prescribe explicit fluid target: 2–2.5 L/day
+- Triple BP-lowering alert: if patient is on GLP-1 RA + SGLT2i + ARB simultaneously — monitor for presyncope/dizziness, especially in Kerala summer heat and during/after exercise [Category 2 flag]
+
+---
+
+### C-7.4 Monitoring Schedule On-Drug
+
+| Timepoint | Standard checks | GLP-1 RA specific |
+|---|---|---|
+| 4 weeks (first titration visit) | Weight, BP, hypoglycaemia events, GI tolerance | SU dose — reduce further if hypo; escalate GLP-1 dose if tolerated |
+| 3 months (Q1) | HbA1c, weight, waist, eGFR, urine ACR, BP | Fundus if HbA1c dropped >2% from baseline — transient retinopathy worsening signal; ophthalmology referral if not done |
+| 6 months (Q2) | Full metabolic panel, lipid profile, weight, waist | SARC-F + handgrip if rapid weight loss (>10% body weight at 6 months); lean mass concern |
+| 12 months (annual) | Annual complication surveillance per standard protocol | USG abdomen if symptomatic (right upper quadrant pain, nausea) — GLP-1 RA increases gallstone risk during rapid weight loss; not routine unless symptomatic |
+| Ongoing if symptomatic | Serum lipase if abdominal pain + back pain — rule out pancreatitis | Do not recheck lipase routinely |
+
+---
+
+### C-7.5 Exit Criteria and Exit Protocol
+
+**When to stop GLP-1 RA — structured criteria:**
+
+| Exit reason | Category | Action |
+|---|---|---|
+| <3% weight loss at 16 weeks on maximum tolerated dose | Inadequate response | Stop; reassess diagnosis + adherence; switch to tirzepatide if semaglutide was used; reassess obesity phenotype |
+| Intolerable GI despite slow titration and dietary measures | Intolerability | Hold at current dose ×4 wk; if still intolerable, step down one level; if intolerable at starting dose, discontinue |
+| Vomiting + epigastric/back pain + lipase elevated | Acute pancreatitis | STOP PERMANENTLY. Do not rechallenge with any GLP-1 RA or tirzepatide. |
+| MTC or MEN-2 diagnosed | Contraindication | STOP PERMANENTLY. |
+| Pregnancy confirmed or planned within 2 months | Safety | STOP IMMEDIATELY. Bridging glycaemic plan mandatory. |
+| Sustained cost failure | Adherence barrier | Switch to generic semaglutide vial if on branded; if still unaffordable, bridge with SGLT2i + intensive lifestyle; document cost barrier |
+| HbA1c at target + weight goal achieved + patient requests stop | Elective | Apply discontinuation protocol below — do NOT stop abruptly |
+
+**Discontinuation protocol — structured exit:**
+
+> SURMOUNT-4 post-hoc (JAMA Internal Medicine, November 2025): >25% weight regain within 1 year of tirzepatide withdrawal in most participants, with corresponding reversal of cardiometabolic improvements. STEP-1 extension (semaglutide): two-thirds of weight lost regained within 1 year of discontinuation. Real-world data suggest less sharp rebound than trials (smaller baseline losses, continued lifestyle management) but rebound remains clinically significant.
+
+- Mandatory counselling before exit: "This medication treats obesity the way antihypertensives treat hypertension. Reaching a goal weight is not an indication to stop — stopping means the condition returns." Document counselling [Category 1].
+- Exit step-down: reduce dose by one level every 4 weeks rather than abrupt stop — reduces rebound velocity
+- At point of stopping — intensify lifestyle simultaneously:
+  - Protein target maintained at 1.2–1.5 g/kg
+  - Resistance exercise maintained 2×/week minimum
+  - Dietary structure counselled explicitly for post-drug period
+- Glycaemia bridging: reassess OAD coverage at stop — often SGLT2i can be continued or uptitrated; SU may need re-uptitration if was reduced at GLP-1 RA initiation
+- Post-discontinuation follow-up: 4 weeks + 3 months — weight, HbA1c, waist, metabolic panel
+
+---
+
+### C-7.6 India Market and Affordability — Post-Patent Landscape
+
+**Patent status (June 2026):**
+
+| Agent | India patent status | Generics available | Cost range/month |
+|---|---|---|---|
+| **Semaglutide** | Expired March 20, 2026 | 40+ manufacturers; 50+ brand names; CDSCO-approved first movers: Natco (Semanat), Sun Pharma (Noveltreat), Glenmark, Dr. Reddy's | See tiers below |
+| **Liraglutide** | Expired earlier | Glenmark (Lirafit) ~₹100/day | ₹2,800–3,200/month |
+| **Dulaglutide** | Under patent | Innovator only (Trulicity) | Very High |
+| **Tirzepatide** | India patent ~2031–2033; no generic announced | Innovator only (Mounjaro, Eli Lilly) | ₹14,000–17,000/month |
+
+**Semaglutide affordability tiers — post March 2026:**
+
+| Tier | Format | Example brands | Cost/month | Clinical fit |
+|---|---|---|---|---|
+| **Entry** | Vial + syringe (clinic-administered) | Natco Semanat | ₹1,290–1,800 | Cost-constrained patients; weekly clinic visit model; aligns with SugarCARE titration visit protocol — adds a clinical touchpoint |
+| **Mid** | Pen device generic | Sun Noveltreat, Glenmark | ₹3,000–5,000 | Mid-income; self-inject at home; preferred for dose-stepping independence |
+| **Standard branded** | Innovator post-37% price cut (Nov 2025) | Ozempic, Rybelsus | ₹8,800–10,850 | Affordability not a constraint |
+| **Obesity dose** | Wegovy SC 2.4mg innovator | Wegovy | ₹17,000–24,000 | Affluent urban only currently |
+| **Tirzepatide** | Mounjaro innovator only | Mounjaro | ₹14,000–17,000 | Obesity-primary indication; superior weight loss; very high cost |
+
+**Prescribing quality note on generics:**
+- Until market consolidation (expected to top 6–8 brands), cold-chain maintenance and device quality are the primary differentiators
+- Prescribe from CDSCO-approved manufacturers only — confirm CDSCO approval status before prescribing any generic
+- Vial format requires training and technique — prefer clinic-administered in Phase 1 of patient initiation
+- Liraglutide generic (Lirafit ~₹3,000/month) is affordable but daily injection, higher GI burden, and inferior efficacy vs weekly semaglutide makes it second-line; not preferred first GLP-1 RA choice now that weekly generic semaglutide is available
+
+---
+
+### C-7.7 Proactive Candidate Identification Logic
+
+> For use in CANDIDATE output mode — when a physician queries the database for patients who should be on GLP-1 RA but are not currently prescribed one. This logic is also used by the Command Center's proactive candidate scan feature.
+
+**Step 1 — Rule-based candidate filter (apply against active patient list):**
+
+```
+CANDIDATE FLAG if ANY of the following are true:
+
+[Indication 1 — CKD + T2DM]
+  eGFR < 60 AND urine ACR > 30 AND current Rx has no GLP-1 RA
+  Priority: HIGH (FLOW trial 1A — strongest renal indication)
+
+[Indication 2 — ASCVD + T2DM]
+  ASCVD documented (IHD / stroke / PAD / post-MI) AND T2DM AND no GLP-1 RA
+  Priority: HIGH (SUSTAIN-6 / SELECT 1A)
+
+[Indication 3 — HFpEF + obesity]
+  HFpEF documented AND BMI ≥ 25 (ICMR) AND no GLP-1 RA
+  Priority: HIGH (STEP-HFpEF 1A)
+
+[Indication 4 — Obesity-driven T2DM, poorly controlled]
+  HbA1c > 7.5 AND BMI ≥ 25 (ICMR) AND on ≥ 2 OADs AND no GLP-1 RA
+  Priority: MEDIUM
+
+[Indication 5 — Obesity without T2DM, high CV risk]
+  BMI ≥ 27.5 + at least one: ASCVD / HTN / dyslipidaemia / MASLD AND no GLP-1 RA
+  Priority: MEDIUM (SELECT trial evidence — non-diabetic CVD population)
+
+[Indication 6 — T2DM, maximum weight loss needed]
+  HbA1c > 8.0 AND BMI ≥ 30 AND current Rx has no tirzepatide
+  Priority: MEDIUM (consider tirzepatide upgrade if semaglutide already tried)
+```
+
+**Step 2 — Priority ranking (within each flagged candidate):**
+
+```
+Priority HIGH:   ≥2 indications met simultaneously (e.g., CKD + ASCVD + obesity)
+                 OR eGFR declining trajectory (>5 mL/min drop in 12 months)
+                 OR HbA1c > 9.0 with obesity
+Priority MEDIUM: Single indication; stable parameters
+Priority LOW:    Single indication; borderline criteria; significant contraindication present
+                 (e.g., prior pancreatitis, MTC family history, cost failure documented)
+```
+
+**Step 3 — Affordability overlay (cross-reference SES/cost tier from DM Pro):**
+
+```
+IF cost tier = low/cost-constrained:
+  → Generic semaglutide vial (₹1,290–1,800/mo) — clinic-administered
+  → Flag: cold-chain reliability of local pharmacy to be confirmed
+
+IF cost tier = mid:
+  → Generic semaglutide pen device (₹3,000–5,000/mo)
+
+IF cost tier = standard/high AND obesity-primary AND maximum weight loss priority:
+  → Tirzepatide (₹14,000–17,000/mo) — document affordability confirmed
+  → If tirzepatide unaffordable, generic semaglutide 2.4mg escalation
+
+IF cost data not captured in DM Pro:
+  → Flag as "affordability unknown" — assess at consultation before initiating
+```
+
+**Step 4 — Contraindication screen (auto-exclude from candidate list):**
+
+```
+EXCLUDE if any of:
+  - MTC or MEN-2 personal or family history documented
+  - Active or recent acute pancreatitis (within 12 months)
+  - Severe gastroparesis documented
+  - Pregnancy documented or planned within 2 months
+  - eGFR < 15 (relative — document and discuss with specialist)
+  → Flag as EXCLUDED with reason; do not generate GLP-1 RA recommendation
+```
+
+**Step 5 — Candidate output format (CANDIDATE mode):**
+
+```
+CANDIDATE SUMMARY — [Patient ID] | [Clinic] | [Date]
+
+Indication(s):      [List matched indications from Step 1]
+Priority tier:      [HIGH / MEDIUM / LOW]
+Recommended agent:  [Semaglutide SC / Tirzepatide / Semaglutide oral — with rationale]
+Affordability tier: [Entry / Mid / Standard / Unknown]
+Est. monthly cost:  [₹ range]
+Contraindications:  [None identified / List if present]
+Missing data:       [Fields needed to confirm candidacy — e.g., fundus not on record]
+Suggested action:   [Schedule for review → Command Center queue OR clinic visit]
+GRADE evidence:     [Tag per indication]
+```
+
+**DM Pro data fields required for reliable candidate identification:**
+- ASCVD: structured yes/no field (not free text) — IHD, stroke, PAD, post-MI separately coded
+- HFpEF / HFrEF: structured comorbidity field
+- Waist circumference: mandatory (not optional)
+- Current Rx: drug class coded (not just brand name free text) — must distinguish GLP-1 RA vs other agents
+- SES/affordability indicator: 3-tier (cost-constrained / standard / high) — entered by clinic staff at index visit
+- Note: if any of above are in free text / inconsistently filled, candidate scan will have false negatives — DM Pro data quality directly limits candidate identification accuracy
+
 
 (Additional drug intelligence blocks for: metformin variants, sulphonylureas, all DPP4i, all SGLT2i, all GLP-1 RA, insulins by type, pioglitazone, voglibose, all major antihypertensives, statins, ezetimibe, bempedoic acid, PCSK9i, fenofibrate, allopurinol, febuxostat, levothyroxine, carbimazole, cabergoline, fludrocortisone, hydrocortisone, finerenone, sacubitril/valsartan — built on demand or by request.)
 
@@ -874,11 +1168,12 @@ Plain-language summary of:
 When generating clinical output, include at TOP and BOTTOM:
 
 ```
-CLINICAL DECISION SUPPORT ONLY — Cardiometabolic Algorithm v4 (SugarCARE / HomoRx Healthtech).
+CLINICAL DECISION SUPPORT ONLY — Cardiometabolic Algorithm v4.1 (SugarCARE / HomoRx Healthtech).
 This output is algorithm-based and does not replace clinical judgement.
 Final prescribing decision rests with the treating physician.
 Verify all drug doses, brands, and prices against current CIMS India before prescribing.
-GLP-1 agonist prescription requires physician/endocrinologist qualification per CDSCO guidelines.
+GLP-1 agonist / tirzepatide prescription requires physician/endocrinologist qualification per CDSCO guidelines.
+Generic semaglutide pricing current as of March–June 2026; verify current prices before counselling patient.
 Report any output concerns to Dr. Rakesh KR (CMO).
 ```
 
@@ -904,9 +1199,11 @@ For every clinical output, verify internally:
 11. ✓ Guideline manifest cited where specific thresholds used?
 12. ✓ Missing mandatory fields identified and investigation dispatch included?
 13. ✓ Legal/safety flags (Category 1/2/3) surfaced where relevant?
-14. ✓ Output template chosen (SugarCARE A–K / Tier-0 / Prescription / SOAP / Referral)?
+14. ✓ Output template chosen (SugarCARE A–K / Tier-0 / Prescription / SOAP / Referral / CANDIDATE)?
 15. ✓ Drug-verification disclaimer appended?
 16. ✓ Practical pearls included — not just textbook content?
+17. ✓ If GLP-1 RA / tirzepatide is indicated or discussed — C-7 pre-initiation checklist applied, affordability tier assigned, India post-patent pricing used (not pre-2026 prices)?
+18. ✓ If CANDIDATE mode — all 5 steps executed (rule filter → priority rank → affordability overlay → contraindication screen → candidate output format)?
 ```
 
 If any missing without good reason, add before responding.

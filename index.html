@@ -7,7 +7,7 @@
 <title>SugarCARE Consult</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light !important;
@@ -183,54 +183,20 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 /* Footer */
 .app-footer{text-align:center;padding:1rem;font-size:0.75rem;color:var(--text-sec);border-top:1px solid var(--border);background:var(--surface);}
 
-/* Print */
+/* Print — the worksheet is the only thing that prints, clean A4 */
 @media print{
-  @page{size:A4 portrait;margin:10mm;}
+  @page{size:A4 portrait;margin:9mm;}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  body{background:#fff;color:#000;font-size:11pt;}
-  /* Hide every screen-only / interactive UI element so only the document prints */
+  html,body{background:#fff!important;}
+  /* Hide every screen-only / interactive UI element so only the worksheet prints */
   .app-header,.config-bar,.main-tabs,.app-footer,.no-print,.section,
-  .audio-input,.progress-bar,.transcript-box,
-  .out-tabs,.out-selector,.out-actions,.btn-row,.generate-bar,
-  input,select,button,textarea,
+  .audio-input,.progress-bar,.transcript-box,.generate-bar,.out-selector,
+  #rxPrintArea{display:none!important;}
   .tab-panel:not(.print-active){display:none!important;}
-  .container{max-width:none;padding:0;}
-  .output-section{display:block!important;}
-  .out-panel{border:none;box-shadow:none;padding:0;border-radius:0;}
-  .out-content{display:none!important;}
-  .out-content.print-target{display:block!important;}
-  .out-content.print-target:not(.scc-host),#rxPrintArea{padding:0;}
-  .out-header h2{color:#4A2FA0;}
-  .out-header h2 span{color:#E86A1A;}
-  /* Care-card document: print only pages flagged .pp-print, each on its own A4 sheet.
-     (.pp-print's 4-class specificity intentionally beats .print-only/.page hides, so
-      Print Selected still controls which of pages 1-3 appear.) */
-  .scc-host{padding:0!important;}
-  .scc-host .scc-doc .page{display:none;}
-  .scc-host .scc-doc .page.pp-print{display:block;width:100%;max-width:none;min-height:auto;margin:0;padding:0;box-shadow:none;border:none;border-radius:0;page-break-after:always;}
-  .scc-host .scc-doc .page.pp-print.pp-last{page-break-after:auto;}
-  .scc-host .scc-doc .doc-footer{position:static;margin-top:10px;}
-  /* Compaction — squeeze the full Patient Care Card onto a single sheet (fonts -1px, padding 8px) */
-  .scc-host .scc-doc .summary-bar{padding:8px 12px;margin-bottom:10px;font-size:10px;}
-  .scc-host .scc-doc .cc-sec-title{font-size:13px;margin-bottom:7px;}
-  .scc-host .scc-doc .med-grid{gap:6px;margin-bottom:10px;}
-  .scc-host .scc-doc .med-card{padding:8px 10px;}
-  .scc-host .scc-doc .med-card .med-name{font-size:11px;}
-  .scc-host .scc-doc .med-card .med-dose{font-size:12px;}
-  .scc-host .scc-doc .med-warn{padding:6px 10px;margin-bottom:10px;font-size:9.5px;}
-  .scc-host .scc-doc .nutrition-section{margin-bottom:10px;}
-  .scc-host .scc-doc .kcal-hero{padding:10px 12px;gap:12px;margin-bottom:6px;}
-  .scc-host .scc-doc .macro-card .m-value{font-size:16px;}
-  .scc-host .scc-doc .kerala-list{padding:8px 12px;}
-  .scc-host .scc-doc .kerala-list ul li{padding:3px 0;font-size:10px;}
-  .scc-host .scc-doc .lower-grid{gap:8px;margin-bottom:8px;}
-  .scc-host .scc-doc .lower-card{padding:8px;}
-  .scc-host .scc-doc .exercise-big{font-size:20px;}
-  .scc-host .scc-doc .goal-row{padding:5px 8px;}
-  .scc-host .scc-doc .next-visit-bar{padding:8px;margin-bottom:8px;}
-  .scc-host .scc-doc .tracker{padding:8px;}
-  .scc-host .scc-doc .log-cell{padding:6px 3px 4px;}
-  .scc-host .scc-doc .day-label{margin-bottom:10px;}
+  .tab-panel.print-active{display:block!important;}
+  .container{max-width:none;padding:0;margin:0;}
+  .output-section{display:block!important;margin:0;}
+  .ws-doc{box-shadow:none!important;border:none!important;border-radius:0!important;margin:0!important;width:100%!important;max-width:none!important;}
 }
 
 /* Output selector — section checkboxes (static bar, shown before analysis) */
@@ -268,119 +234,147 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .priority-thisvisit,.priority-this-visit{color:var(--amber);font-weight:600;font-size:0.78rem;}
 .priority-routine{color:var(--text-sec);font-size:0.78rem;}
 .not-stocked-tag{display:inline-block;background:rgba(230,81,0,0.10);color:var(--amber);padding:1px 5px;border-radius:4px;font-size:0.7rem;font-weight:600;margin-left:4px;}
+.cat1-safety-tag{display:inline-block;background:rgba(198,40,40,0.12);color:var(--red);padding:2px 6px;border-radius:4px;font-size:0.7rem;font-weight:700;margin-left:4px;letter-spacing:0.02em;}
+.meta-warning-banner{display:flex;align-items:center;gap:0.6rem;background:rgba(230,81,0,0.08);border:1px solid rgba(230,81,0,0.30);border-radius:8px;padding:0.6rem 0.9rem;margin-bottom:0.85rem;font-size:0.84rem;font-weight:600;color:var(--amber);}
 
-/* ===== Care-card / Rx / Context — 3-page print document (v3-white) ===== */
-.scc-doc{
-  --purple:#4A2FA0; --purple-tint:#E4E0F4; --orange:#E86A1A; --orange-tint:#FCE4D4;
-  --paper:#FFFFFF; --ink:#1A0E50; --muted:#5C5478; --card:#FFFFFF; --line:#D9D0BC;
-  --soft:#F3F3F3; --forest:#1C4A3A; --leaf:#6E9B5E; --alert:#C0492F; --alert-bg:#FBEEEA;
-  --alert-border:#E6B3A6; --warn-bg:#FAEEDA; --warn-border:#FAC775;
-  font-family:'Outfit',sans-serif;color:var(--ink);
+/* ============================================================
+   WORKSHEET (v1) — Dr. Rakesh's fixed clinical worksheet.
+   Fixed fields, fixed order; the model fills values, the
+   template owns the structure. Renders identically every run.
+   ============================================================ */
+.ws-doc{--p:#4A2FA0;--o:#E86A1A;--ink:#1A0E50;--muted:#6B6792;--line:#D9D4E8;
+  --fill:#F6F4FB;--p-tint:#ECE7F8;--o-tint:#FCEAD9;
+  font-family:'Plus Jakarta Sans','Outfit',system-ui,sans-serif;color:var(--ink);
+  background:#fff;max-width:210mm;margin:1rem auto;border:1px solid var(--line);
+  border-radius:6px;box-shadow:0 2px 14px rgba(74,47,160,.10);padding:14mm 13mm;}
+.ws-doc .ml{font-family:'Noto Sans Malayalam',sans-serif;}
+
+/* Document head */
+.ws-head{display:flex;justify-content:space-between;align-items:flex-start;
+  border-bottom:2.5px solid var(--o);padding-bottom:10px;margin-bottom:14px;}
+.ws-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:24px;color:var(--p);line-height:1;}
+.ws-logo span{color:var(--o);}
+.ws-logo .tag{font-family:'Noto Sans Malayalam',sans-serif;font-size:10px;color:var(--muted);font-weight:400;margin-top:3px;}
+.ws-aisummary{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.ws-aisummary .box{width:12px;height:12px;border:1.5px solid var(--p);border-radius:3px;display:inline-block;}
+
+/* Patient/doctor identity grid */
+.ws-id{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin-bottom:18px;}
+.ws-id .ws-field{font-size:11.5px;}
+
+/* Generic field: label + value-or-blank line */
+.ws-field{display:flex;align-items:baseline;gap:6px;min-width:0;}
+.ws-flabel{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;}
+.ws-fval{font-size:11.5px;font-weight:600;color:var(--ink);flex:1;min-width:0;border-bottom:1px solid var(--line);padding-bottom:1px;line-height:1.5;}
+.ws-fval.empty{color:transparent;}
+.ws-bl{display:inline-block;min-width:48px;border-bottom:1px solid #B9B3CF;height:0.9em;vertical-align:baseline;}
+.ws-bl.wide{display:block;width:100%;height:1.05em;}
+
+/* Section shell */
+.ws-section{margin-bottom:20px;break-inside:auto;}
+.ws-sec-head{display:flex;align-items:center;gap:10px;background:var(--p);color:#fff;
+  border-radius:8px 8px 0 0;padding:8px 13px;}
+.ws-sec-head .n{width:20px;height:20px;border-radius:50%;background:var(--o);color:#fff;
+  font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-sec-head h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:14px;letter-spacing:-.2px;flex:1;}
+.ws-sec-head .meta{font-size:9.5px;opacity:.82;font-weight:500;}
+.ws-sec-body{border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px;padding:13px;}
+
+/* Sub-card */
+.ws-card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff;}
+.ws-card.tint{background:var(--fill);}
+.ws-card-title{font-size:10px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ws-card-title.orange{color:var(--o);}
+.ws-grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.ws-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.ws-stack>*+*{margin-top:7px;}
+
+/* Worksheet tables (prescription columns, etc.) */
+.ws-table{width:100%;border-collapse:collapse;font-size:10.5px;}
+.ws-table th{background:var(--p-tint);color:var(--p);text-align:left;font-weight:700;
+  font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;padding:5px 7px;border:1px solid var(--line);}
+.ws-table td{padding:5px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4;height:22px;}
+.ws-table .gen{font-weight:700;color:var(--ink);}
+.ws-table .brand{color:var(--o);font-weight:600;}
+.ws-table .dose{color:var(--p);font-weight:600;}
+.ws-col-label{font-size:10px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:flex;justify-content:space-between;align-items:baseline;}
+.ws-col-label .sub{font-size:8.5px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0;}
+
+/* Audit flags */
+.ws-audit{margin-top:13px;border-top:1px dashed var(--line);padding-top:11px;}
+.ws-audit-title{font-size:10px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.ws-audit-row{display:flex;align-items:baseline;gap:9px;padding:3px 0;font-size:11px;}
+.ws-check{width:13px;height:13px;border:1.5px solid var(--p);border-radius:3px;flex-shrink:0;
+  display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800;line-height:1;position:relative;top:2px;}
+.ws-check.on{background:var(--p);}
+.ws-audit-label{font-weight:600;color:var(--ink);flex-shrink:0;}
+.ws-audit-text{flex:1;color:var(--muted);border-bottom:1px solid var(--line);min-height:1em;padding-bottom:1px;}
+.ws-notes-line{display:flex;align-items:baseline;gap:8px;margin-top:9px;font-size:11px;}
+.ws-notes-line .lab{font-weight:700;color:var(--muted);white-space:nowrap;}
+.ws-notes-line .val{flex:1;border-bottom:1px solid var(--line);min-height:1.1em;padding-bottom:1px;}
+
+/* Status bars (diet current status) */
+.ws-bar-row{display:grid;grid-template-columns:120px 1fr 64px;align-items:center;gap:9px;padding:3px 0;font-size:10.5px;}
+.ws-bar-row .lab{color:var(--ink);font-weight:600;}
+.ws-bar-track{height:7px;background:#EEEBF4;border-radius:4px;overflow:hidden;}
+.ws-bar-fill{height:100%;border-radius:4px;}
+.ws-bar-rate{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;text-align:right;}
+
+/* Plate method donut */
+.ws-plate{display:flex;align-items:center;gap:16px;}
+.ws-plate .legend{flex:1;display:flex;flex-direction:column;gap:6px;font-size:10.5px;}
+.ws-plate .legend .it{display:flex;gap:7px;align-items:baseline;}
+.ws-plate .legend .sw{width:10px;height:10px;border-radius:2px;flex-shrink:0;position:relative;top:1px;}
+.ws-plate .legend .frac{font-weight:800;color:var(--ink);white-space:nowrap;}
+
+/* Two-column include/avoid + lists */
+.ws-itemlist{font-size:10.5px;}
+.ws-itemlist .it{display:flex;gap:7px;padding:3px 0;border-bottom:1px solid #F0EDF7;line-height:1.45;}
+.ws-itemlist .it:last-child{border-bottom:none;}
+.ws-itemlist .it::before{content:'›';color:var(--o);font-weight:800;flex-shrink:0;}
+.ws-itemlist .cat{font-weight:700;color:var(--ink);}
+.ws-itemlist.avoid .it::before{content:'×';color:var(--o);}
+
+/* Timeline (short-term goals / progressive targets) */
+.ws-timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ws-tl-card{border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:var(--fill);}
+.ws-tl-phase{font-size:9px;font-weight:800;color:var(--o);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.ws-tl-goal{font-size:10px;color:var(--ink);line-height:1.45;min-height:1.4em;}
+
+/* Pillars */
+.ws-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px;}
+.ws-pillar{border:1px solid var(--line);border-top:3px solid var(--p);border-radius:8px;padding:10px;}
+.ws-pillar h4{font-size:11px;font-weight:800;color:var(--p);margin-bottom:6px;}
+.ws-pillar ul{list-style:none;font-size:10px;line-height:1.5;}
+.ws-pillar li{padding:2px 0 2px 12px;position:relative;}
+.ws-pillar li::before{content:'•';color:var(--o);font-weight:800;position:absolute;left:0;}
+
+/* Checklist (goals reviewed / annual review / what-not-to-do) */
+.ws-checklist{font-size:10.5px;}
+.ws-checklist .row{display:flex;align-items:baseline;gap:8px;padding:3px 0;}
+.ws-checklist .row .gv{margin-left:auto;border-bottom:1px solid var(--line);min-width:70px;text-align:right;color:var(--p);font-weight:700;padding-bottom:1px;}
+.ws-checklist .lbl{color:var(--ink);}
+
+/* Follow-up top cards */
+.ws-fu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:13px;}
+.ws-fu-card{border:1px solid var(--line);border-left:3px solid var(--p);border-radius:0 8px 8px 0;padding:9px 11px;}
+.ws-fu-card .t{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.ws-fu-card .v{font-size:11px;font-weight:600;color:var(--ink);line-height:1.45;min-height:1.3em;}
+
+/* Signature */
+.ws-sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:22px;gap:30px;}
+.ws-sign .line{flex:1;border-top:1px solid var(--ink);padding-top:5px;font-size:9.5px;color:var(--muted);text-align:center;}
+.ws-foot{margin-top:14px;border-top:1px solid var(--line);padding-top:8px;display:flex;justify-content:space-between;font-size:8.5px;color:var(--muted);}
+.ws-foot b{color:var(--ink);}
+
+/* Print button bar */
+.ws-actions{display:flex;justify-content:center;gap:.6rem;margin:1rem 0 0;}
+
+@media(max-width:680px){
+  .ws-id,.ws-grid2,.ws-grid3,.ws-fu-grid,.ws-pillars{grid-template-columns:1fr;}
+  .ws-timeline{grid-template-columns:1fr 1fr;}
+  .ws-doc{padding:18px 14px;}
 }
-.scc-doc .ml{font-family:'Noto Sans Malayalam',sans-serif;}
-.scc-doc .page{position:relative;width:100%;max-width:210mm;background:#FFFFFF;padding:14mm 15mm 22mm;margin:0 auto 18px;box-shadow:0 2px 12px rgba(0,0,0,.10);border:1px solid var(--line);border-radius:4px;}
-.scc-doc .doc-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid var(--orange);padding-bottom:11px;margin-bottom:20px;}
-.scc-doc .brand-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:var(--purple);line-height:1;}
-.scc-doc .brand-logo span{color:var(--orange);}
-.scc-doc .brand-tagline{font-family:'Noto Sans Malayalam',sans-serif;font-size:10px;color:var(--muted);margin-top:4px;}
-.scc-doc .doc-meta{text-align:right;font-size:11px;line-height:1.7;color:var(--muted);}
-.scc-doc .doc-meta b{color:var(--ink);}
-.scc-doc .page-label{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;color:var(--purple);letter-spacing:-.3px;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
-.scc-doc .page-label::after{content:'';flex:1;height:1.5px;background:var(--purple-tint);}
-.scc-doc .sec{margin-bottom:20px;}
-.scc-doc .sec-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
-.scc-doc .sec-title::after{content:'';flex:1;height:1px;background:var(--line);}
-.scc-doc .clinical-picture{background:var(--card);border:1px solid var(--line);border-left:3.5px solid var(--purple);border-radius:0 10px 10px 0;padding:13px 16px;font-size:12px;line-height:1.7;}
-.scc-doc .missing-bar{background:var(--warn-bg);border:1px solid var(--warn-border);border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
-.scc-doc .missing-bar .warn-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
-.scc-doc .missing-bar b{color:#854F0B;}
-.scc-doc .flags-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-.scc-doc .flag-box{background:var(--alert-bg);border:1px solid var(--alert-border);border-radius:10px;padding:11px 13px;font-size:11px;line-height:1.5;color:#4a4536;}
-.scc-doc .flag-label{font-size:10px;font-weight:700;color:var(--alert);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:flex;align-items:center;gap:4px;}
-.scc-doc .deviations{background:#F3F3F3;border-radius:10px;padding:12px 16px;font-size:11px;line-height:1.9;columns:2;column-gap:20px;}
-.scc-doc .deviations li{list-style:none;padding-left:13px;position:relative;break-inside:avoid;}
-.scc-doc .deviations li::before{content:'•';color:var(--orange);font-weight:700;position:absolute;left:0;}
-.scc-doc .rx-table{width:100%;border-collapse:collapse;font-size:11px;margin:10px 0;}
-.scc-doc .rx-table th{background:var(--purple);color:#fff;padding:8px 10px;text-align:left;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.05em;}
-.scc-doc .rx-table td{padding:9px 10px;border-bottom:1px solid #F3F3F3;vertical-align:top;line-height:1.45;}
-.scc-doc .rx-table tr:last-child td{border-bottom:none;}
-.scc-doc .rx-table tr:nth-child(even) td{background:#F8F8F8;}
-.scc-doc .drug-name{font-weight:700;color:var(--ink);}
-.scc-doc .drug-brand{font-weight:400;color:var(--muted);font-size:10px;}
-.scc-doc .drug-dose{color:var(--purple);font-weight:600;}
-.scc-doc .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9.5px;font-weight:600;white-space:nowrap;}
-.scc-doc .badge-jan{background:#EAF3DE;color:#3B6D11;}
-.scc-doc .badge-generic{background:var(--purple-tint);color:var(--purple);}
-.scc-doc .badge-brand{background:var(--warn-bg);color:#854F0B;}
-.scc-doc .special-inst{background:var(--card);border:1px dashed var(--leaf);border-radius:10px;padding:10px 14px;font-size:11px;line-height:1.55;margin-top:10px;display:flex;gap:10px;align-items:flex-start;}
-.scc-doc .monitoring{margin-top:10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-.scc-doc .mon-item{background:#F3F3F3;border-radius:7px;padding:7px 8px;font-size:10px;color:var(--ink);line-height:1.4;text-align:center;}
-.scc-doc .sig-block{margin-top:20px;display:flex;justify-content:flex-end;}
-.scc-doc .sig-inner{text-align:center;font-size:10px;color:var(--muted);}
-.scc-doc .sig-line{border-top:1px solid var(--ink);width:180px;padding-top:5px;}
-.scc-doc .care-header{text-align:center;padding-bottom:14px;border-bottom:2.5px solid var(--orange);margin-bottom:0;}
-.scc-doc .care-logo{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:26px;color:var(--purple);line-height:1;}
-.scc-doc .care-logo span{color:var(--orange);}
-.scc-doc .care-tagline{font-family:'Noto Sans Malayalam',sans-serif;font-size:11px;color:var(--muted);margin-top:4px;}
-.scc-doc .patient-strip{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--purple);border-radius:12px;margin:14px 0;color:#fff;}
-.scc-doc .ps-name{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;}
-.scc-doc .ps-meta{font-size:11px;opacity:.8;margin-top:2px;}
-.scc-doc .ps-right{text-align:right;font-size:11px;opacity:.85;line-height:1.6;}
-.scc-doc .summary-bar{background:#fff;border:1px solid var(--line);border-left:3.5px solid var(--purple);border-radius:0 10px 10px 0;padding:10px 14px;font-size:11px;line-height:1.6;margin-bottom:14px;}
-.scc-doc .cc-sec-title{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:14px;color:var(--ink);margin-bottom:10px;display:flex;align-items:center;gap:9px;}
-.scc-doc .cc-num{width:24px;height:24px;border-radius:50%;background:var(--orange);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.scc-doc .cc-num-ml{font-family:'Noto Sans Malayalam',sans-serif;font-size:11px;color:var(--muted);font-weight:400;}
-.scc-doc .med-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:16px;}
-.scc-doc .med-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:3px;}
-.scc-doc .med-card .med-name{font-weight:700;font-size:12px;color:var(--ink);line-height:1.2;}
-.scc-doc .med-card .med-dose{font-size:13px;font-weight:800;color:var(--purple);font-family:'Bricolage Grotesque',sans-serif;}
-.scc-doc .med-card .med-when{font-size:10px;color:var(--muted);}
-.scc-doc .med-warn{background:var(--orange-tint);border-radius:8px;padding:7px 11px;font-size:10.5px;color:#7a3010;margin-bottom:16px;line-height:1.4;}
-.scc-doc .nutrition-section{margin-bottom:16px;}
-.scc-doc .kcal-hero{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:16px;margin-bottom:8px;}
-.scc-doc .kcal-donut{flex-shrink:0;position:relative;}
-.scc-doc .kcal-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
-.scc-doc .kcal-num{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:16px;color:var(--orange);line-height:1;}
-.scc-doc .kcal-unit{font-size:8px;color:var(--muted);display:block;}
-.scc-doc .macro-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex:1;}
-.scc-doc .macro-card{background:#F3F3F3;border-radius:10px;padding:9px 10px;text-align:center;}
-.scc-doc .macro-card .m-label{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
-.scc-doc .macro-card .m-value{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:18px;line-height:1;}
-.scc-doc .macro-card .m-sub{font-size:9px;color:var(--muted);margin-top:2px;}
-.scc-doc .kerala-list{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 14px;}
-.scc-doc .kerala-list .kl-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;}
-.scc-doc .kerala-list ul{list-style:none;font-size:11px;line-height:1;}
-.scc-doc .kerala-list ul li{padding:5px 0;border-bottom:1px solid #F3F3F3;display:flex;align-items:center;gap:8px;}
-.scc-doc .kerala-list ul li:last-child{border-bottom:none;}
-.scc-doc .kerala-list ul li::before{content:'→';color:var(--orange);font-weight:700;font-size:10px;flex-shrink:0;}
-.scc-doc .hydration-note{margin-top:7px;font-size:11px;color:var(--forest);font-weight:500;display:flex;align-items:center;gap:6px;}
-.scc-doc .lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.scc-doc .lower-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
-.scc-doc .exercise-content{font-size:11.5px;line-height:1.55;}
-.scc-doc .exercise-big{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:22px;color:var(--purple);line-height:1;margin:8px 0 4px;}
-.scc-doc .exercise-big span{font-size:12px;font-weight:400;color:var(--muted);}
-.scc-doc .exercise-sub{font-size:10px;color:var(--muted);line-height:1.5;}
-.scc-doc .goal-cards{display:flex;flex-direction:column;gap:6px;}
-.scc-doc .goal-row{display:flex;align-items:center;justify-content:space-between;background:#F3F3F3;border-radius:8px;padding:7px 10px;}
-.scc-doc .goal-row .g-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
-.scc-doc .goal-row .g-value{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:15px;color:var(--purple);}
-.scc-doc .goal-row .g-ml{font-family:'Noto Sans Malayalam',sans-serif;font-size:9.5px;color:var(--orange);}
-.scc-doc .next-visit-bar{background:var(--purple);color:#fff;border-radius:10px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:12px;gap:10px;}
-.scc-doc .nv-type{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:13px;}
-.scc-doc .nv-date{color:#FFD580;font-weight:700;font-size:13px;}
-.scc-doc .nv-note{font-size:10px;opacity:.75;}
-.scc-doc .tracker{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:11px 14px;}
-.scc-doc .tracker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
-.scc-doc .tracker-head b{font-family:'Bricolage Grotesque',sans-serif;font-size:12px;}
-.scc-doc .tracker-head .bring{color:var(--orange);font-weight:600;font-size:10px;}
-.scc-doc .log-row{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
-.scc-doc .log-cell{border:1px solid var(--line);border-radius:9px;padding:8px 4px 6px;text-align:center;}
-.scc-doc .day-label{font-weight:700;color:var(--ink);font-size:10px;display:block;margin-bottom:14px;}
-.scc-doc .write-line{border-bottom:1px solid var(--line);height:1px;margin:0 6px;}
-.scc-doc .log-hint{text-align:center;font-size:9px;color:var(--muted);margin-top:7px;}
-.scc-doc .doc-footer{position:static;margin-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:8.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:7px;}
-.scc-doc .doc-footer b{color:var(--ink);}
-.scc-doc .doc-footer .disc{font-style:italic;text-align:right;max-width:55%;}
 </style>
 </head>
 <body>
@@ -484,16 +478,6 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
     </div>
   </div>
 
-  <div class="out-selector no-print" id="selectorAudio">
-    <span class="out-selector-label">Output:</span>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="context"  checked> Clinical Context</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="rx"       checked> Prescription</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="carecard" checked> Patient Care Card</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="diet"     checked> Diet Plan</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="exercise" checked> Exercise</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="followup" checked> Follow-up</label>
-  </div>
-
   <div class="generate-bar" style="text-align:center;margin-bottom:1rem;">
     <button class="btn btn-orange" id="transcribeBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.75rem 2rem;font-size:0.95rem;">Transcribe &amp; Analyse</button>
   </div>
@@ -568,16 +552,6 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
     <div class="row"><div class="fld"><label>Key Findings / History</label><textarea id="m_history" rows="3" placeholder="Relevant clinical history, exam findings…"></textarea></div></div>
     <div class="row"><div class="fld"><label>Herbal / AYUSH / OTC</label><textarea id="m_herbal" rows="2" placeholder="Any alternative medicines or supplements…"></textarea></div></div>
     <div class="row"><div class="fld"><label>Lifestyle Notes</label><textarea id="m_lifestyle" rows="2" placeholder="Diet, exercise, smoking, sleep…"></textarea></div></div>
-  </div>
-
-  <div class="out-selector no-print" id="selectorManual">
-    <span class="out-selector-label">Output:</span>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="context"  checked> Clinical Context</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="rx"       checked> Prescription</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="carecard" checked> Patient Care Card</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="diet"     checked> Diet Plan</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="exercise" checked> Exercise</label>
-    <label class="out-cb-lbl"><input type="checkbox" data-key="followup" checked> Follow-up</label>
   </div>
 
   <div style="text-align:center;margin-bottom:1rem;">
@@ -1118,411 +1092,364 @@ function getCheckedKeys(barId) {
 // are always added server-side regardless of this list.
 function toApiOutputs(keys) { return keys.map(k => OUTPUT_API_KEY[k]).filter(Boolean); }
 
-/* ============ OUTPUT RENDERER ============ */
-function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+/* ============ WORKSHEET RENDERER ============ */
+function esc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
 
-function gravityClass(g) {
-  const s = (g || '').toLowerCase();
-  if (s.includes('3')) return 'gravity-3';
-  if (s.includes('2')) return 'gravity-2';
-  if (s.includes('appropriate')) return 'gravity-ok';
-  return 'gravity-1';
-}
+// A worksheet value: rendered text, or a blank ruled line the doctor fills by hand.
+function wsVal(x) { const s = (x == null ? '' : String(x)).trim(); return s ? esc(s) : '<span class="ws-bl"></span>'; }
+function wsField(label, val) { return `<div class="ws-field"><span class="ws-flabel">${esc(label)}</span><span class="ws-fval">${wsVal(val)}</span></div>`; }
 
-function renderOutput(targetId, data, patient, selectedKeys) {
-  const el = document.getElementById(targetId);
-  const ctx    = data.context || {};
-  const audit  = data.audit || {};
-  const workup = data.idealWorkup || {};
-  const rx     = data.idealPrescription || {};
-  const diet   = data.idealDiet || {};
-  const ex     = data.idealExercise || {};
-  const fup    = data.idealFollowUpPlan || {};
-  const dr = cfg('doctor'); const cl = cfg('clinic'); const reg = cfg('regNo');
-  const today = patient.date || new Date().toISOString().split('T')[0];
-  const pInfo = [esc(patient.name), patient.age ? patient.age + 'y' : '', esc(patient.gender)].filter(Boolean).join(', ');
-
-  const headerHTML = `<div class="out-header"><h2>Sugar<span>CARE</span></h2><div class="oh-sub">${esc(dr)}${cl ? ' · SugarCARE '+esc(cl) : ''}${reg ? ' · '+esc(reg) : ''} · ${esc(today)}</div><div class="oh-patient">${pInfo || 'Patient'} · ${esc(patient.visitType || '')}</div></div>`;
-
-  const li = arr => (arr||[]).map(x => `<li>${esc(x)}</li>`).join('');
-  const alerts = arr => (arr||[]).map(x => `<div class="out-flag">${esc(x)}</div>`).join('');
-
-  // --- Prescription (formulary schema: brand/salt/mrp/packSize) ---
-  const meds = rx.medications || [];
-  const rxMedsHTML = meds.map((m, i) => {
-    const ns = m.formularyStatus === 'indicated-not-stocked';
-    return `<tr${ns ? ' style="background:rgba(230,81,0,0.04);"' : ''}><td>${i+1}</td><td>${esc(m.brand||'')}${ns ? '<span class="not-stocked-tag">not in formulary</span>' : ''}<div style="font-size:0.7rem;color:var(--text-sec);">${esc(m.packSize||'')}</div></td><td>${esc(m.salt||'')}</td><td>${esc(m.dose||'')}</td><td>${esc(m.frequency||'')}</td><td>${esc(m.instructions||'')}</td><td>${ns ? '<span style="color:var(--text-sec);">—</span>' : esc(m.mrp||'')}</td></tr>`;
-  }).join('');
-
-  // --- Audit findings ---
-  const auditFindings = audit.findings || [];
-  const auditTally = audit.gravityTally || {};
-  const auditRows = auditFindings.map(f => {
-    const gc = gravityClass(f.gravity);
-    return `<tr><td style="font-size:0.82rem;">${esc(f.finding)}</td><td style="font-size:0.78rem;color:var(--text-sec);">${esc(f.direction)}</td><td><span class="gravity-badge ${gc}">${esc(f.gravity)}</span></td><td style="font-size:0.8rem;">${esc(f.standard)}</td><td style="font-size:0.75rem;color:var(--text-sec);">${esc(f.source)}${f.grade ? ' '+esc(f.grade) : ''}</td><td style="font-size:0.82rem;">${esc(f.correction)}</td></tr>`;
-  }).join('');
-  const tallyHTML = (auditTally.grade3 || auditTally.grade2 || auditTally.grade1 || auditTally.appropriate)
-    ? `<div class="audit-tally">${auditTally.grade3 ? `<span class="tally-chip tally-g3">Grade 3: ${auditTally.grade3}</span>` : ''}${auditTally.grade2 ? `<span class="tally-chip tally-g2">Grade 2: ${auditTally.grade2}</span>` : ''}${auditTally.grade1 ? `<span class="tally-chip tally-g1">Grade 1: ${auditTally.grade1}</span>` : ''}${auditTally.appropriate ? `<span class="tally-chip tally-ok">Appropriate: ${auditTally.appropriate}</span>` : ''}</div>`
-    : '';
-
-  // --- Workup investigations ---
-  const workupInvs = workup.investigations || [];
-  const workupRows = workupInvs.map(inv => {
-    const pCls = 'priority-' + (inv.priority||'routine').toLowerCase().replace(/[\s-]+/g,'');
-    return `<tr><td style="font-weight:600;font-size:0.84rem;">${esc(inv.test)}</td><td style="font-size:0.82rem;">${esc(inv.reason)}</td><td style="font-size:0.78rem;color:var(--text-sec);">${esc(inv.purpose)}</td><td><span class="${pCls}">${esc(inv.priority)}</span></td><td style="font-size:0.8rem;">${esc(inv.actionTrigger)}</td></tr>`;
-  }).join('');
-
-  // --- Diet ---
-  const macros = diet.macros || {};
-  const macroLine = (macros.carbsPercent || macros.proteinPercent || macros.fatPercent)
-    ? `Carbs ${esc(macros.carbsPercent)}% · Protein ${esc(macros.proteinPercent)}% · Fat ${esc(macros.fatPercent)}%` : '';
-
-  // --- Exercise ---
-  const exLine = [
-    ex.type ? esc(ex.type) : '',
-    ex.minutesPerDay ? esc(ex.minutesPerDay) + ' min/day' : '',
-    ex.daysPerWeek ? esc(ex.daysPerWeek) + ' days/week' : '',
-    ex.weeklyMinutes ? '(' + esc(ex.weeklyMinutes) + ' min/week total)' : ''
-  ].filter(Boolean).join(' · ');
-
-  // --- Follow-up targets ---
-  const targets = fup.targetsByNextVisit || {};
-  const targetRows = [
-    targets.hba1c  ? `<tr><td>HbA1c</td><td>${esc(targets.hba1c)}</td></tr>`  : '',
-    targets.weight ? `<tr><td>Weight</td><td>${esc(targets.weight)}</td></tr>` : '',
-    targets.bp     ? `<tr><td>BP</td><td>${esc(targets.bp)}</td></tr>`         : '',
-    ...(targets.other || []).map(o => `<tr><td>Other</td><td>${esc(o)}</td></tr>`)
-  ].join('');
-
-  el.innerHTML = `
-    <div class="out-tabs no-print">
-      <button class="out-tab active" data-key="context"  onclick="switchOut(this)">Context</button>
-      <button class="out-tab"        data-key="audit"     onclick="switchOut(this)">Audit</button>
-      <button class="out-tab"        data-key="rx"        onclick="switchOut(this)">Prescription</button>
-      <button class="out-tab"        data-key="workup"    onclick="switchOut(this)">Workup</button>
-      <button class="out-tab"        data-key="carecard"  onclick="switchOut(this)">Care Card</button>
-      <button class="out-tab"        data-key="diet"      onclick="switchOut(this)">Diet</button>
-      <button class="out-tab"        data-key="exercise"  onclick="switchOut(this)">Exercise</button>
-      <button class="out-tab"        data-key="followup"  onclick="switchOut(this)">Follow-up</button>
-    </div>
-    <div class="out-panel">
-
-      <!-- Context -->
-      <div class="out-content active" id="${targetId}_context">
-        ${headerHTML}
-        <div class="out-section-title">Summary</div>
-        <p style="font-size:0.88rem;">${esc(ctx.summary) || '—'}</p>
-        ${ctx.missingData && ctx.missingData.length ? '<div class="out-section-title">Missing Data — Collect</div><div class="out-flags">'+alerts(ctx.missingData)+'</div>' : ''}
-        <div class="out-section-title">Deviations / Abnormal Values</div>
-        <ul class="out-bullets">${li(ctx.deviations) || '<li>None noted</li>'}</ul>
-        ${ctx.redFlags && ctx.redFlags.length ? '<div class="out-section-title">Red Flags</div><div class="out-flags">'+alerts(ctx.redFlags)+'</div>' : ''}
-        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Audit -->
-      <div class="out-content" id="${targetId}_audit">
-        ${headerHTML}
-        <div class="out-section-title">Audit — ${esc(audit.mode || '—')}</div>
-        ${audit.summary ? `<div class="audit-summary">${esc(audit.summary)}</div>` : ''}
-        ${tallyHTML}
-        ${auditRows ? `<table class="out-med-table"><thead><tr><th>Finding</th><th>Direction</th><th>Gravity</th><th>Standard</th><th>Source</th><th>Correction</th></tr></thead><tbody>${auditRows}</tbody></table>` : '<p style="font-size:0.88rem;color:var(--text-sec);">No audit findings.</p>'}
-        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Prescription (formulary-driven) -->
-      <div class="out-content" id="${targetId}_rx">
-        ${headerHTML}
-        <div class="out-rx-symbol">℞</div>
-        <table class="out-med-table"><thead><tr><th>#</th><th>Medicine</th><th>Salt</th><th>Dose</th><th>When</th><th>Instructions</th><th>MRP</th></tr></thead><tbody>${rxMedsHTML || '<tr><td colspan="7">No medications</td></tr>'}</tbody></table>
-        ${rx.specialInstructions ? '<div class="out-section-title">Special Instructions</div><p style="font-size:0.88rem;">'+esc(rx.specialInstructions)+'</p>' : ''}
-        ${rx.monitoringParameters && rx.monitoringParameters.length ? '<div class="out-section-title">Monitoring Parameters</div><ul class="out-bullets">'+li(rx.monitoringParameters)+'</ul>' : ''}
-        <div class="out-sig"><div class="out-sig-line">Signature of Prescriber</div></div>
-        <div class="out-disclaimer">For use as prescribed. Verify all drug data with CIMS India before dispensing.<br>SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Ideal Workup -->
-      <div class="out-content" id="${targetId}_workup">
-        ${headerHTML}
-        <div class="out-section-title">Ideal Workup</div>
-        ${workup.summary ? `<p class="workup-caption">${esc(workup.summary)}</p>` : ''}
-        ${workupRows ? `<table class="out-med-table"><thead><tr><th>Test</th><th>Reason</th><th>Purpose</th><th>Priority</th><th>Action Trigger</th></tr></thead><tbody>${workupRows}</tbody></table>` : '<p style="font-size:0.88rem;color:var(--text-sec);">No workup items listed.</p>'}
-        ${workup.anthropometryMissing && workup.anthropometryMissing.length ? '<div class="out-section-title">Missing Anthropometry</div><div class="antro-chips">'+workup.anthropometryMissing.map(a=>`<span class="antro-chip">${esc(a)}</span>`).join('')+'</div>' : ''}
-        <div class="out-disclaimer">Internal clinical record — SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Care Card — 3-page print document -->
-      <div class="out-content" id="${targetId}_carecard">
-        ${renderPrintPages(data, patient)}
-      </div>
-
-      <!-- Diet -->
-      <div class="out-content" id="${targetId}_diet">
-        ${headerHTML}
-        <div class="out-section-title">Diet Plan${diet.targetCalories ? ' — ' + esc(diet.targetCalories) + ' kcal/day' : ''}</div>
-        ${macroLine ? '<p style="font-size:0.85rem;color:var(--text-sec);">'+macroLine+'</p>' : ''}
-        ${diet.mealPlan && diet.mealPlan.length ? '<div class="out-section-title">Meal Plan</div><ul class="out-bullets">'+li(diet.mealPlan)+'</ul>' : ''}
-        ${diet.keralaMeals && diet.keralaMeals.length ? '<div class="out-section-title">Kerala Food Swaps</div><ul class="out-bullets">'+li(diet.keralaMeals)+'</ul>' : ''}
-        ${diet.avoid && diet.avoid.length ? '<div class="out-section-title">Avoid</div><ul class="out-bullets warning">'+li(diet.avoid)+'</ul>' : ''}
-        ${diet.hydration ? '<p style="font-size:0.88rem;"><strong>Hydration:</strong> '+esc(diet.hydration)+'</p>' : ''}
-        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Exercise -->
-      <div class="out-content" id="${targetId}_exercise">
-        ${headerHTML}
-        <div class="out-section-title">Exercise</div>
-        <p style="font-size:0.95rem;font-weight:600;">${exLine || '—'}</p>
-        ${ex.progression ? '<div class="out-section-title">Progression</div><p style="font-size:0.88rem;">'+esc(ex.progression)+'</p>' : ''}
-        ${ex.restrictions && ex.restrictions.length ? '<div class="out-section-title">Restrictions</div><ul class="out-bullets warning">'+li(ex.restrictions)+'</ul>' : ''}
-        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <!-- Follow-up -->
-      <div class="out-content" id="${targetId}_followup">
-        ${headerHTML}
-        <div class="out-section-title">Next Visit</div>
-        <p style="font-size:0.88rem;">${esc(fup.nextVisitType || '—')}${fup.nextVisitDate ? ' — ' + esc(fup.nextVisitDate) : ''}</p>
-        ${fup.nextVisitFocus && fup.nextVisitFocus.length ? '<div class="out-section-title">Next Visit Focus</div><ul class="out-bullets">'+li(fup.nextVisitFocus)+'</ul>' : ''}
-        ${targetRows ? '<div class="out-section-title">Targets by Next Visit</div><table class="out-med-table"><thead><tr><th>Parameter</th><th>Target</th></tr></thead><tbody>'+targetRows+'</tbody></table>' : ''}
-        ${fup.warningSignsToReturn && fup.warningSignsToReturn.length ? '<div class="out-section-title">Warning Signs to Return</div><ul class="out-bullets warning">'+li(fup.warningSignsToReturn)+'</ul>' : ''}
-        <div class="out-disclaimer">SugarCARE · HomoRx Healthtech</div>
-      </div>
-
-      <div class="out-actions no-print">
-        <button class="btn btn-outline btn-sm" onclick="copyOut('${targetId}')">Copy</button>
-        <button class="btn btn-outline btn-sm" onclick="printOut('${targetId}')">Print This</button>
-        <button class="btn btn-purple btn-sm" onclick="printSelected('${targetId}')">🖨 Print Selected</button>
-        <button class="btn btn-ghost btn-sm" disabled title="Coming soon — DM Pro integration pending">Save to DM Pro</button>
-      </div>
-    </div>`;
-
-  el.classList.add('visible');
-
-  // Context, Audit, Rx, Workup, Care Card always visible.
-  // Diet / Exercise / Follow-up gated by selectedKeys from checkboxes.
-  const alwaysShow = new Set(['context', 'audit', 'rx', 'workup', 'carecard']);
-  const keys = (selectedKeys && selectedKeys.length) ? selectedKeys : [];
-  const tabs = [...el.querySelectorAll('.out-tab')];
-  tabs.forEach(t => {
-    const k = t.dataset.key;
-    t.style.display = (alwaysShow.has(k) || keys.includes(k)) ? '' : 'none';
-  });
-  const firstVisible = tabs.find(t => t.style.display !== 'none');
-  if (firstVisible) switchOut(firstVisible);
-
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function fmtDate(s) {
+function wsNiceDate(s) {
   if (!s) return '';
   const d = new Date(s + 'T00:00:00');
   if (isNaN(d.getTime())) return esc(s);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-// Splits "Generic (Brand)" → { name, brand }. Returns brand '' if no parentheses.
-function splitDrug(s) {
-  const m = (s || '').match(/^(.*?)\s*\((.*)\)\s*$/);
-  return m ? { name: m[1], brand: m[2] } : { name: s || '', brand: '' };
+// Map a one-word diet-status rating to a coloured progress bar.
+// ── This is a clinical judgement call: how strongly each rating word is graded.
+//    Tune the buckets/colours here to match how Dr. Rakesh wants status read at a glance. ──
+function ratingToBar(rating) {
+  const r = (rating || '').toLowerCase().trim();
+  if (!r) return { pct: 0, color: '#D9D4E8', label: '' };
+  if (/(poor|none|very low|bad|absent)/.test(r))                  return { pct: 22, color: '#C0492F', label: rating };
+  if (/(low|inadequate|irregular|insufficient|infrequent)/.test(r)) return { pct: 42, color: '#E86A1A', label: rating };
+  if (/(moderate|fair|partial|average|borderline)/.test(r))       return { pct: 60, color: '#D99A12', label: rating };
+  if (/(adequate|regular|ok|acceptable|stable|sufficient)/.test(r)) return { pct: 78, color: '#6E9B5E', label: rating };
+  if (/(good|excellent|optimal|high|great)/.test(r))             return { pct: 92, color: '#2E7D32', label: rating };
+  return { pct: 55, color: '#6B6792', label: rating };
+}
+function wsBarRow(label, rating) {
+  const b = ratingToBar(rating);
+  return `<div class="ws-bar-row"><span class="lab">${esc(label)}</span>`
+    + `<div class="ws-bar-track"><div class="ws-bar-fill" style="width:${b.pct}%;background:${b.color};"></div></div>`
+    + `<span class="ws-bar-rate" style="color:${b.color};">${b.label ? esc(b.label) : ''}</span></div>`;
 }
 
-// Builds the 3-page A4 print document (Clinical Summary · Prescription · Patient Care Card)
-// using the v3-white design system. Pages are tagged data-pp so printSelected() can filter them.
-function renderPrintPages(data, patient) {
-  const ctx  = data.context || {};
-  const rx   = data.idealPrescription || {};
-  const diet = data.idealDiet || {};
-  const ex   = data.idealExercise || {};
-  const fup  = data.idealFollowUpPlan || {};
-  const macros = diet.macros || {};
+// Build table rows from data, padded to a minimum count with blank ruled rows.
+function wsRows(arr, cellFns, minRows) {
+  const cols = cellFns.length;
+  const rows = (arr || []).filter(Boolean).map(item => '<tr>' + cellFns.map(fn => `<td>${fn(item)}</td>`).join('') + '</tr>');
+  const blank = '<tr>' + '<td><span class="ws-bl"></span></td>'.repeat(cols) + '</tr>';
+  while (rows.length < (minRows || 0)) rows.push(blank);
+  return rows.join('');
+}
+
+// Include/avoid + meal-timing style item lists (category + detail), padded with blanks.
+function wsItemList(arr, cls, minRows) {
+  const items = (arr || []).filter(it => it && ((it.category||'').trim() || (it.detail||'').trim() || (it.meal||'').trim() || (it.guidance||'').trim() || (it.item||'').trim()));
+  const rows = items.map(it => {
+    const head = it.category != null ? it.category : (it.meal != null ? it.meal : it.item);
+    const body = it.detail != null ? it.detail : it.guidance;
+    return `<div class="it"><span><span class="cat">${wsVal(head)}</span> ${wsVal(body)}</span></div>`;
+  });
+  const blank = `<div class="it"><span><span class="ws-bl" style="min-width:80px"></span> <span class="ws-bl" style="min-width:120px"></span></span></div>`;
+  while (rows.length < (minRows || 0)) rows.push(blank);
+  return `<div class="ws-itemlist ${cls || ''}">${rows.join('')}</div>`;
+}
+
+function wsCheckRow(text, value, hasValue) {
+  return `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(text)}</span>`
+    + (hasValue ? `<span class="gv">${wsVal(value)}</span>` : '') + `</div>`;
+}
+
+function renderOutput(targetId, data, patient) {
+  const el = document.getElementById(targetId);
+  const p  = patient || {};
+  const h  = data.header || {};
+  const rx = data.prescription || {};
+  const diet = data.diet || {};
+  const ex = data.exercise || {};
+  const fu = data.followUp || {};
+  const cs = diet.currentStatus || {};
+  const wn = diet.whatsNeeded || {};
+  const pm = diet.plateMethod || {};
+  const ca = ex.currentActivity || {};
+  const it = ex.idealTargets || {};
+  const ap = ex.adaptedPlan || {};
+
   const dr = cfg('doctor'), cl = cfg('clinic'), reg = cfg('regNo');
-  const clinicName = cl ? 'SugarCARE ' + esc(cl) : 'SugarCARE';
-  const today = patient.date || new Date().toISOString().split('T')[0];
-  const niceDate = fmtDate(today);
-  const ageGender = (patient.age ? esc(patient.age) : '') + (patient.gender ? esc(patient.gender) : '');
-  const visit = esc(patient.visitType || '');
-  const pName = patient.name ? esc(patient.name) : 'Patient';
-  const TAG = 'കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ';
+  const today = p.date || new Date().toISOString().split('T')[0];
+  const clinicName = cl ? 'SugarCARE ' + esc(cl) : '';
+  // Header values come from the model; fall back to the patient form where blank.
+  const hName = h.patientName || p.name;
+  const hAge  = h.age || p.age;
+  const hSex  = h.sex || p.gender;
+  const hVisit = h.visitType || p.visitType;
 
-  const metaBlock = `${dr ? esc(dr) + ' · ' : ''}${clinicName}<br>${[ageGender, visit, niceDate].filter(Boolean).join(' · ')}`;
-  const docHeader = extra => `<div class="doc-header"><div><div class="brand-logo">Sugar<span>CARE</span></div><div class="brand-tagline ml">${TAG}</div></div><div class="doc-meta">${extra || ''}${metaBlock}</div></div>`;
+  const metaBanner = (data._meta && (data._meta.partial || data._meta.repaired))
+    ? `<div class="meta-warning-banner no-print">⚠ Partial result — output may be incomplete. Please re-run.</div>` : '';
 
-  /* ── PAGE 1 — Clinical Summary & Context (+ Audit) ── */
-  const missing = (ctx.missingData || []).map(x => esc(x)).join(' &nbsp;·&nbsp; ');
-  const flags = (ctx.redFlags || []).map(rf => `<div class="flag-box"><div class="flag-label">⚠ Flag</div>${esc(rf)}</div>`).join('');
-  const devs = (ctx.deviations || []).map(d => `<li>${esc(d)}</li>`).join('');
-  const auditData = data.audit || {};
-  const auditFindings = auditData.findings || [];
-  const p1AuditRows = auditFindings.map(f => {
-    const gColor = (f.gravity||'').includes('3') ? 'var(--alert)' : (f.gravity||'').includes('2') ? '#854F0B' : '#2E7D32';
-    return `<tr><td style="font-size:10px;line-height:1.4;">${esc(f.finding)}</td><td style="font-size:10px;font-weight:700;color:${gColor};white-space:nowrap;">${esc(f.gravity)}</td><td style="font-size:10px;">${esc(f.standard)}</td><td style="font-size:10px;">${esc(f.correction)}</td><td style="font-size:9px;color:var(--muted);">${esc(f.source)}${f.grade ? ' '+esc(f.grade) : ''}</td></tr>`;
+  /* ── Header ── */
+  const headHTML = `
+    <div class="ws-head">
+      <div><div class="ws-logo">Sugar<span>CARE</span></div><div class="tag ml">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div></div>
+      <div style="text-align:right;">
+        <div class="ws-aisummary"><span class="box"></span> AI summary → DM Pro</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:6px;">${esc(wsNiceDate(today))}</div>
+      </div>
+    </div>
+    <div class="ws-id">
+      ${wsField('Doctor', dr)}
+      ${wsField('Patient', hName)}
+      ${wsField('Clinic / Reg', [clinicName, reg].filter(Boolean).join(' · '))}
+      ${wsField('Age / Sex', [hAge, hSex].filter(v => (v||'').toString().trim()).join(' / '))}
+      ${wsField('Visit type', hVisit)}
+      ${wsField('Weight / Height', [h.weight, h.height].filter(v => (v||'').toString().trim()).join(' / '))}
+      ${wsField('Duration of illness', h.duration)}
+      ${wsField('BMI', h.bmi)}
+      <div style="grid-column:1/-1;">${wsField('Diagnosis', h.diagnosis)}</div>
+    </div>`;
+
+  /* ── Section 1: Prescription (ideal vs formulary + audit) ── */
+  const idealTable = `<table class="ws-table"><thead><tr><th style="width:26%">Drug (generic)</th><th style="width:13%">Dose</th><th style="width:13%">Freq</th><th style="width:15%">Duration</th><th>Rationale</th></tr></thead><tbody>${
+    wsRows(rx.idealRx, [m=>`<span class="gen">${wsVal(m.drugGeneric)}</span>`, m=>`<span class="dose">${wsVal(m.dose)}</span>`, m=>wsVal(m.freq), m=>wsVal(m.duration), m=>wsVal(m.rationale)], 4)
+  }</tbody></table>`;
+  const formularyTable = `<table class="ws-table"><thead><tr><th style="width:22%">Drug</th><th style="width:22%">Brand</th><th style="width:12%">Dose</th><th style="width:12%">Freq</th><th>Switch reason</th></tr></thead><tbody>${
+    wsRows(rx.formularyRx, [m=>`<span class="gen">${wsVal(m.drugGeneric)}</span>`, m=>`<span class="brand">${wsVal(m.brand)}</span>`, m=>`<span class="dose">${wsVal(m.dose)}</span>`, m=>wsVal(m.freq), m=>wsVal(m.switchReason)], 4)
+  }</tbody></table>`;
+
+  const AUDIT_LEVELS = [
+    ['match', 'Direct generic match — no concern'],
+    ['class-equivalent', 'Class-equivalent maintained — acceptable'],
+    ['different-molecule', 'Different molecule / efficacy profile — reason documented'],
+    ['cost-availability', 'Cost / availability consideration noted']
+  ];
+  const flags = rx.auditFlags || [];
+  const norm = s => (s || '').toLowerCase().trim().replace(/\s+/g, '-');
+  const auditHTML = AUDIT_LEVELS.map(([k, lab]) => {
+    const matched = flags.filter(f => norm(f.level) === k);
+    const on = matched.length > 0;
+    const txt = matched.map(f => f.text).filter(Boolean).join('; ');
+    return `<div class="ws-audit-row"><span class="ws-check ${on ? 'on' : ''}">${on ? '✓' : ''}</span><span class="ws-audit-label">${esc(lab)}</span><span class="ws-audit-text">${txt ? esc(txt) : ''}</span></div>`;
   }).join('');
-  const page1 = `<div class="page print-only" data-pp="context">
-    ${docHeader('<div><b>Internal Clinical Record</b></div>')}
-    <div class="page-label">Clinical Summary &amp; Context</div>
-    <div class="sec"><div class="sec-title">Clinical Picture</div><div class="clinical-picture">${esc(ctx.summary) || '—'}</div></div>
-    ${missing ? `<div class="sec"><div class="sec-title">Missing Data — Collect at Next Visit</div><div class="missing-bar"><span class="warn-icon">⚠</span><div><b>Not yet collected:</b>&nbsp; ${missing}</div></div></div>` : ''}
-    ${flags ? `<div class="sec"><div class="sec-title">🚨 Red Flags</div><div class="flags-grid">${flags}</div></div>` : ''}
-    ${devs ? `<div class="sec"><div class="sec-title">Deviations from Target</div><ul class="deviations">${devs}</ul></div>` : ''}
-    ${p1AuditRows ? `<div class="sec"><div class="sec-title">Audit Findings — ${esc(auditData.mode||'AUDIT')}</div>${auditData.summary ? `<div class="clinical-picture" style="margin-bottom:10px;font-size:11px;">${esc(auditData.summary)}</div>` : ''}<table class="rx-table" style="font-size:10px;"><thead><tr><th style="width:32%">Finding</th><th style="width:11%">Gravity</th><th style="width:22%">Standard</th><th>Correction</th><th style="width:13%">Evidence</th></tr></thead><tbody>${p1AuditRows}</tbody></table></div>` : ''}
-    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Private Limited · 799 4884 799</div><div class="disc">Internal clinical record — not for patient use.</div></div>
-  </div>`;
 
-  /* ── PAGE 2 — Prescription (formulary-driven) ── */
-  const rxRows = (rx.medications || []).map(m => {
-    const ns = m.formularyStatus === 'indicated-not-stocked';
-    const nsBadge = ns ? `<span style="font-size:9px;background:#FCE4D4;color:#854F0B;padding:1px 4px;border-radius:3px;font-weight:600;display:inline-block;margin-top:2px;">not in formulary</span>` : '';
-    const mrpCell = ns ? '—' : `<div style="font-size:10px;font-weight:600;">${esc(m.mrp||'')}</div><div style="font-size:8.5px;color:var(--muted);">${esc(m.packSize||'')}</div>`;
-    return `<tr${ns ? ' style="opacity:0.72;background:#FFF8F0;"' : ''}><td><div class="drug-name">${esc(m.brand||'')}</div><div class="drug-brand">${esc(m.salt||'')}</div>${nsBadge}</td><td class="drug-dose">${esc(m.dose||'')}</td><td>${esc(m.frequency||'')}</td><td>${esc(m.instructions||'')}</td><td>${mrpCell}</td></tr>`;
-  }).join('');
-  const monIt = (rx.monitoringParameters || []).map(p => `<div class="mon-item">${esc(p)}</div>`).join('');
-  const page2 = `<div class="page print-only" data-pp="rx">
-    ${docHeader('')}
-    <div class="page-label">℞ Prescription</div>
-    <table class="rx-table"><thead><tr><th style="width:28%">Medicine / Salt</th><th style="width:10%">Dose</th><th style="width:22%">When</th><th>Instructions</th><th style="width:12%">MRP</th></tr></thead><tbody>${rxRows || '<tr><td colspan="5">No medications</td></tr>'}</tbody></table>
-    ${rx.specialInstructions ? `<div class="special-inst"><span style="color:var(--leaf);font-size:16px;">✓</span><span><b>Special instructions:</b> ${esc(rx.specialInstructions)}</span></div>` : ''}
-    ${monIt ? `<div class="sec" style="margin-top:18px;"><div class="sec-title">Monitoring Parameters</div><div class="monitoring">${monIt}</div></div>` : ''}
-    <div class="sig-block"><div class="sig-inner"><div class="sig-line">Signature of Prescriber</div><div style="margin-top:3px;">${reg ? 'Reg No: ' + esc(reg) + ' · ' : ''}Date: ${esc(niceDate)}</div></div></div>
-    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Pvt Ltd · 799 4884 799</div><div class="disc">For use as prescribed. Verify all drug data with CIMS India before dispensing.</div></div>
-  </div>`;
-
-  /* ── PAGE 3 — Patient Care Card (no prescription — food/exercise/goals only) ── */
-  const c = +(macros.carbsPercent||0), p = +(macros.proteinPercent||0), f = +(macros.fatPercent||0);
-  const tot = c + p + f;
-  const cal = +(diet.targetCalories||0);
-  const grams = (pct, perGram) => (cal && pct) ? Math.round(cal*pct/100/perGram) : 0;
-  const donut = tot > 0
-    ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F3F3" stroke-width="4.5"/>
-       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="4.5" stroke-dasharray="${(c/tot*100).toFixed(1)} ${(100-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="4.5" stroke-dasharray="${(p/tot*100).toFixed(1)} ${(100-p/tot*100).toFixed(1)}" stroke-dashoffset="${(-c/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="4.5" stroke-dasharray="${(f/tot*100).toFixed(1)} ${(100-f/tot*100).toFixed(1)}" stroke-dashoffset="${(-(c+p)/tot*100).toFixed(1)}" transform="rotate(-90 18 18)"/>
-       <circle cx="18" cy="18" r="10" fill="#fff"/>`
-    : `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#F3F3F3" stroke-width="4.5"/><circle cx="18" cy="18" r="10" fill="#fff"/>`;
-  const kerala = (diet.keralaMeals || []).map(k => `<li>${esc(k)}</li>`).join('');
-  const exMin = ex.minutesPerDay ? esc(ex.minutesPerDay) : '—';
-  const exFreq = [ex.type ? esc(ex.type) : '', ex.daysPerWeek ? esc(ex.daysPerWeek) + ' days/week' : ''].filter(Boolean).join(' · ');
-  const exSub = [ex.progression ? esc(ex.progression) : '', ...(ex.restrictions||[]).map(r=>esc(r))].filter(Boolean).join('<br>');
-  const tg = fup.targetsByNextVisit || {};
-  const goals = [];
-  if (tg.hba1c)  goals.push(['HbA1c','ഷുഗർ ടാർഗറ്റ്', tg.hba1c]);
-  if (tg.weight) goals.push(['Weight','ഭാരം', tg.weight]);
-  if (tg.bp)     goals.push(['Blood Pressure','രക്തസമ്മർദ്ദം', tg.bp]);
-  (tg.other||[]).forEach(o => goals.push(['Target','', o]));
-  const goalRows = goals.slice(0,4).map(([l,ml,v]) => `<div class="goal-row"><div><div class="g-label">${esc(l)}</div>${ml ? `<div class="g-ml ml">${ml}</div>` : ''}</div><div class="g-value">${esc(v)}</div></div>`).join('');
-  const focusNote = (fup.nextVisitFocus||[]).map(x=>esc(x)).join(' · ');
-
-  const page3 = `<div class="page page-carecard" data-pp="carecard">
-    <div class="care-header"><div class="care-logo">Sugar<span>CARE</span></div><div class="care-tagline ml">${TAG}</div></div>
-    <div class="patient-strip"><div><div class="ps-name">${pName}</div><div class="ps-meta">${[visit, ageGender].filter(Boolean).join(' · ')}</div></div><div class="ps-right">${esc(niceDate)}<br>${dr ? esc(dr) + ' · ' : ''}${clinicName}</div></div>
-    <div class="summary-bar">${esc(ctx.summary) || '—'}</div>
-
-    <div class="cc-sec-title"><div class="cc-num">1</div>Your Food Plan<span class="cc-num-ml ml">ഭക്ഷണ ക്രമം</span></div>
-    <div class="nutrition-section">
-      <div class="kcal-hero">
-        <div class="kcal-donut"><svg viewBox="0 0 36 36" width="88" height="88">${donut}</svg><div class="kcal-center"><div class="kcal-num">${cal||'—'}</div><span class="kcal-unit">kcal</span></div></div>
-        <div class="macro-cards">
-          <div class="macro-card"><div class="m-label">Carbs</div><div class="m-value" style="color:#6E9B5E;">${c?c+'%':'—'}</div><div class="m-sub">${grams(c,4)?grams(c,4)+'g/day':''}</div></div>
-          <div class="macro-card"><div class="m-label">Protein</div><div class="m-value" style="color:var(--orange);">${p?p+'%':'—'}</div><div class="m-sub">${grams(p,4)?grams(p,4)+'g/day':''}</div></div>
-          <div class="macro-card"><div class="m-label">Fat</div><div class="m-value" style="color:var(--purple);">${f?f+'%':'—'}</div><div class="m-sub">${grams(f,9)?grams(f,9)+'g/day':''}</div></div>
+  const prescriptionHTML = `
+    <div class="ws-section">
+      <div class="ws-sec-head"><span class="n">1</span><h3>Prescription</h3><span class="meta">Ideal (evidence-based) vs Formulary (your brands) · with audit</span></div>
+      <div class="ws-sec-body">
+        <div class="ws-grid2">
+          <div><div class="ws-col-label">Ideal prescription <span class="sub">evidence-based</span></div>${idealTable}</div>
+          <div><div class="ws-col-label">Formulary prescription <span class="sub">your brands</span></div>${formularyTable}</div>
+        </div>
+        <div class="ws-audit">
+          <div class="ws-audit-title">Audit flags</div>
+          ${auditHTML}
+          <div class="ws-notes-line"><span class="lab">Doctor's notes:</span><span class="val">${(rx.doctorNotes||'').trim() ? esc(rx.doctorNotes) : ''}</span></div>
         </div>
       </div>
-      ${kerala ? `<div class="kerala-list"><div class="kl-title">Kerala Food Guide</div><ul>${kerala}</ul></div>` : ''}
-      ${diet.hydration ? `<div class="hydration-note">💧 ${esc(diet.hydration)}</div>` : ''}
-    </div>
+    </div>`;
 
-    <div class="lower-grid">
-      <div class="lower-card">
-        <div class="cc-sec-title" style="margin-bottom:8px;"><div class="cc-num">2</div>Exercise<span class="cc-num-ml ml">വ്യായാമം</span></div>
-        <div class="exercise-content">
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;">Daily target</div>
-          <div class="exercise-big">${exMin} <span>min/day</span></div>
-          ${exFreq ? `<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px;">${exFreq}</div>` : ''}
-          ${exSub ? `<div class="exercise-sub">${exSub}</div>` : ''}
+  /* ── Section 2: Diet Advice ── */
+  const plateDonut = `<svg viewBox="0 0 36 36" width="92" height="92">
+    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEEBF4" stroke-width="5"/>
+    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="5" stroke-dasharray="50 50" transform="rotate(-90 18 18)"/>
+    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="5" stroke-dasharray="25 75" stroke-dashoffset="-50" transform="rotate(-90 18 18)"/>
+    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="5" stroke-dasharray="25 75" stroke-dashoffset="-75" transform="rotate(-90 18 18)"/>
+    <circle cx="18" cy="18" r="9.5" fill="#fff"/></svg>`;
+
+  const PHASES = ['Week 1-2', 'Week 3-4', 'Month 2', 'Month 3+'];
+  const goalTimeline = PHASES.map(ph => {
+    const g = (diet.shortTermGoals || []).find(x => norm(x.phase) === norm(ph));
+    return `<div class="ws-tl-card"><div class="ws-tl-phase">${esc(ph)}</div><div class="ws-tl-goal">${g && (g.goal||'').trim() ? esc(g.goal) : '<span class="ws-bl wide"></span>'}</div></div>`;
+  }).join('');
+
+  const dietHTML = `
+    <div class="ws-section">
+      <div class="ws-sec-head"><span class="n">2</span><h3>Diet Advice</h3><span class="meta">Status · target · plate method · plan</span></div>
+      <div class="ws-sec-body">
+        <div class="ws-grid2">
+          <div class="ws-card tint">
+            <div class="ws-card-title">Current diet status <span style="font-weight:500;text-transform:none;color:var(--muted);">(from DM Pro)</span></div>
+            ${wsBarRow('Carbohydrate quality', cs.carbQuality)}
+            ${wsBarRow('Protein adequacy', cs.proteinAdequacy)}
+            ${wsBarRow('Dietary fibre', cs.dietaryFibre)}
+            ${wsBarRow('Healthy fats', cs.healthyFats)}
+            ${wsBarRow('Meal regularity', cs.mealRegularity)}
+            ${wsBarRow('Hydration', cs.hydration)}
+            <div style="margin-top:8px;" class="ws-stack">
+              ${wsField('Key concern', cs.keyConcern)}
+              ${wsField('Calories / day', cs.currentCalories)}
+              ${wsField('Eating pattern', cs.eatingPattern)}
+            </div>
+          </div>
+          <div class="ws-card">
+            <div class="ws-card-title orange">What's needed <span style="font-weight:500;text-transform:none;color:var(--muted);">(evidence-based target)</span></div>
+            <div class="ws-stack">
+              ${wsField('Calorie target', wn.calorieTarget)}
+              ${wsField('Carbohydrate', wn.carbPercent)}
+              ${wsField('Fat', wn.fat)}
+              ${wsField('Dietary fibre', wn.fibre)}
+              ${wsField('Sodium', wn.sodium)}
+              ${wsField('Water', wn.water)}
+              ${wsField('Meal frequency', wn.mealFrequency)}
+              ${wsField('Priority switch', wn.prioritySwitch)}
+              ${wsField('Evidence base', wn.evidenceBase)}
+            </div>
+          </div>
+        </div>
+
+        <div class="ws-card" style="margin-top:13px;">
+          <div class="ws-card-title">The Diabetes Plate Method</div>
+          <div class="ws-plate">
+            ${plateDonut}
+            <div class="legend">
+              <div class="it"><span class="sw" style="background:#6E9B5E;"></span><span><span class="frac">½ plate</span> — Non-starchy vegetables · ${wsVal(pm.nonStarchyVeg)}</span></div>
+              <div class="it"><span class="sw" style="background:#E86A1A;"></span><span><span class="frac">¼ plate</span> — Lean protein · ${wsVal(pm.leanProtein)}</span></div>
+              <div class="it"><span class="sw" style="background:#4A2FA0;"></span><span><span class="frac">¼ plate</span> — Quality carbohydrate · ${wsVal(pm.qualityCarb)}</span></div>
+            </div>
+          </div>
+          <div class="ws-notes-line" style="margin-top:9px;"><span class="lab">Why it works:</span><span class="val">${(pm.whyItWorks||'').trim() ? esc(pm.whyItWorks) : ''}</span></div>
+        </div>
+
+        <div class="ws-grid2" style="margin-top:13px;">
+          <div class="ws-card"><div class="ws-card-title">Include &amp; encourage</div>${wsItemList(diet.includeEncourage, '', 3)}</div>
+          <div class="ws-card"><div class="ws-card-title orange">Restrict &amp; avoid</div>${wsItemList(diet.restrictAvoid, 'avoid', 3)}</div>
+        </div>
+
+        <div class="ws-card" style="margin-top:13px;"><div class="ws-card-title">Meal timing &amp; pattern</div>${wsItemList(diet.mealTiming, '', 3)}</div>
+
+        <div style="margin-top:13px;"><div class="ws-card-title" style="color:var(--p);">Short-term diet plan <span style="font-weight:500;text-transform:none;color:var(--muted);">(SMART)</span></div>
+          <div class="ws-timeline">${goalTimeline}</div>
+        </div>
+        <div class="ws-notes-line"><span class="lab">Doctor's note:</span><span class="val"></span></div>
+      </div>
+    </div>`;
+
+  /* ── Section 3: Exercise Advice ── */
+  const PILLAR_DEFAULTS = ['Aerobic', 'Resistance', 'Flexibility & balance'];
+  const pillars = (ex.pillars || []).slice();
+  while (pillars.length < 3) pillars.push({ pillar: PILLAR_DEFAULTS[pillars.length], points: [] });
+  const pillarHTML = pillars.slice(0, 3).map((p, i) => {
+    const pts = (p.points || []).filter(x => (x||'').toString().trim());
+    const lis = pts.length ? pts.map(x => `<li>${esc(x)}</li>`).join('') : '<li><span class="ws-bl wide"></span></li><li><span class="ws-bl wide"></span></li>';
+    return `<div class="ws-pillar"><h4>Pillar ${i+1} · ${(p.pillar||'').trim() ? esc(p.pillar) : esc(PILLAR_DEFAULTS[i] || '')}</h4><ul>${lis}</ul></div>`;
+  }).join('');
+
+  const progTimeline = (() => {
+    const arr = (ex.progressiveTargets || []).filter(x => x && ((x.phase||'').trim() || (x.target||'').trim()));
+    const cards = arr.map(t => `<div class="ws-tl-card"><div class="ws-tl-phase">${wsVal(t.phase)}</div><div class="ws-tl-goal">${(t.target||'').trim() ? esc(t.target) : '<span class="ws-bl wide"></span>'}</div></div>`);
+    const blank = `<div class="ws-tl-card"><div class="ws-tl-phase"><span class="ws-bl"></span></div><div class="ws-tl-goal"><span class="ws-bl wide"></span></div></div>`;
+    while (cards.length < 4) cards.push(blank);
+    return cards.join('');
+  })();
+
+  const notToDo = (ex.whatNotToDo || []).filter(x => (x||'').toString().trim());
+  const notToDoHTML = (notToDo.length ? notToDo : ['', '', '']).map(x => `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(x)}</span></div>`).join('');
+
+  const exerciseHTML = `
+    <div class="ws-section">
+      <div class="ws-sec-head"><span class="n">3</span><h3>Exercise Advice</h3><span class="meta">Current · ideal · adapted · progression</span></div>
+      <div class="ws-sec-body">
+        <div class="ws-grid3">
+          <div class="ws-card tint"><div class="ws-card-title">Current activity</div><div class="ws-stack">
+            ${wsField('Activity level', ca.activityClass)}
+            ${wsField('Steps / day', ca.stepsPerDay)}
+            ${wsField('Structured ex.', ca.structuredEx)}
+            ${wsField('Occupation', ca.occupation)}
+            ${wsField('Barriers', ca.barriers)}
+            ${wsField('Contraindications', ca.contraindications)}
+            ${wsField('Foot exam done', ca.footExamDone)}
+          </div></div>
+          <div class="ws-card"><div class="ws-card-title">Ideal targets <span style="font-weight:500;text-transform:none;color:var(--muted);">(ADA 2024)</span></div><div class="ws-stack">
+            ${wsField('Aerobic', it.aerobic)}
+            ${wsField('Resistance', it.resistance)}
+            ${wsField('Flexibility', it.flexibility)}
+            ${wsField('Steps', it.steps)}
+            ${wsField('Sitting breaks', it.sittingBreaks)}
+          </div></div>
+          <div class="ws-card"><div class="ws-card-title orange">Adapted plan</div><div class="ws-stack">
+            ${wsField('Start with', ap.startWith)}
+            ${wsField('Resistance alt.', ap.resistanceAlt)}
+            ${wsField('Knee / joint care', ap.kneeJointCare)}
+            ${wsField('BG monitoring', ap.bgMonitoring)}
+            ${wsField('Foot check', ap.footCheck)}
+            ${wsField('Hydration', ap.hydration)}
+          </div></div>
+        </div>
+
+        <div class="ws-pillars">${pillarHTML}</div>
+
+        <div style="margin-top:13px;"><div class="ws-card-title" style="color:var(--p);">Progressive targets over time</div>
+          <div class="ws-timeline">${progTimeline}</div>
+        </div>
+
+        <div class="ws-grid2" style="margin-top:13px;">
+          <div class="ws-card"><div class="ws-card-title">Safety guidelines</div>${wsItemList(ex.safety, '', 3)}</div>
+          <div class="ws-card"><div class="ws-card-title orange">What NOT to do</div><div class="ws-checklist">${notToDoHTML}</div></div>
         </div>
       </div>
-      <div class="lower-card">
-        <div class="cc-sec-title" style="margin-bottom:8px;"><div class="cc-num">3</div>Your Goals<span class="cc-num-ml ml">ലക്ഷ്യം</span></div>
-        <div class="goal-cards">${goalRows || '<div class="goal-row"><div class="g-label">—</div></div>'}</div>
-      </div>
-    </div>
+    </div>`;
 
-    ${fup.nextVisitType ? `<div class="next-visit-bar"><div><div style="font-size:10px;opacity:.75;margin-bottom:2px;">Next visit</div><div class="nv-type">${esc(fup.nextVisitType)}</div></div>${fup.nextVisitDate ? `<div class="nv-date">${esc(fup.nextVisitDate)}</div>` : ''}${focusNote ? `<div class="nv-note">Bring: ${focusNote}</div>` : ''}</div>` : ''}
+  /* ── Section 4: Follow-up Plan ── */
+  const goalsReviewed = (fu.goalsReviewed || []).filter(g => g && ((g.goal||'').trim() || (g.value||'').trim()));
+  const goalsHTML = (goalsReviewed.length ? goalsReviewed : [{},{},{}]).map(g => wsCheckRow(g.goal, g.value, true)).join('');
 
-    <div class="tracker">
-      <div class="tracker-head"><b>Daily log — write your fasting sugar reading</b><span class="bring">★ Bring this card next visit</span></div>
-      <div class="log-row">${['Day 1','Day 2','Day 3','Day 5','Day 7'].map(d => `<div class="log-cell"><span class="day-label">${d}</span><div class="write-line"></div></div>`).join('')}</div>
-      <div class="log-hint ml">ഷുഗർ വായന ഓരോ ദിവസവും ഇവിടെ എഴുതുക · ഈ കാർഡ് അടുത്ത സന്ദർശനത്തിൽ കൊണ്ടുവരുക</div>
-    </div>
+  const PS_LABELS = { concernsAddressed: 'Concerns addressed', confidence: 'Confidence in plan', barriersIdentified: 'Barriers identified', nextReviewBooked: 'Next review booked' };
+  const ps = fu.patientSatisfaction || {};
+  const psKeys = Object.keys(PS_LABELS).concat(Object.keys(ps).filter(k => !(k in PS_LABELS)));
+  const psHTML = psKeys.map(k => `<div class="row"><span class="lbl" style="min-width:120px;">${esc(PS_LABELS[k] || k)}</span><span class="gv" style="flex:1;text-align:left;color:var(--ink);font-weight:600;">${wsVal(ps[k])}</span></div>`).join('');
 
-    <div class="doc-footer"><div><b>SugarCARE Clinics</b> · 799 4884 799${cl ? ' · ' + esc(cl) : ''}</div><div class="disc">Clinical decision support only. Prescriber judgement is final.</div></div>
-  </div>`;
-
-  return `<div class="scc-doc">${page1}${page2}${page3}</div>`;
-}
-
-function switchOut(btn) {
-  const panel = btn.closest('.output-section');
-  const tabs = [...panel.querySelectorAll('.out-tab')];
-  const i = tabs.indexOf(btn);
-  if (i < 0) return;
-  tabs.forEach((t,j) => t.classList.toggle('active', j===i));
-  panel.querySelectorAll('.out-content').forEach((c,j) => c.classList.toggle('active', j===i));
-}
-
-function activeOutContent(targetId) {
-  return document.getElementById(targetId).querySelector('.out-content.active');
-}
-
-function copyOut(targetId) {
-  const content = activeOutContent(targetId);
-  if (content) navigator.clipboard.writeText(content.textContent.trim()).then(() => showToast('Copied'));
-}
-
-// "Print This" — print the currently visible tab. Care Card redirects to the multi-page printer.
-function printOut(targetId) {
-  const content = activeOutContent(targetId);
-  if (!content) return;
-  if (content.id.endsWith('_carecard')) { printSelected(targetId); return; }
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
-  content.classList.add('print-target');
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
-  document.getElementById(targetId).closest('.tab-panel').classList.add('print-active');
-  window.print();
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
-}
-
-// "Print Selected" — print only the checked printable pages (Clinical Context · Prescription · Patient Care Card),
-// each on its own A4 sheet. Diet / Exercise / Follow-up are screen-only references and are never printed.
-// Reads checkbox state from the static pre-analysis selector bar (selectorAudio / selectorManual).
-function printSelected(targetId) {
-  const panel = document.getElementById(targetId);
-  const host = document.getElementById(targetId + '_carecard');
-  const pages = host ? [...host.querySelectorAll('.scc-doc .page')] : [];
-  // Find the static selector bar that belongs to the same main tab as this output panel.
-  const mainTab = panel.closest('.tab-panel');
-  const staticBar = mainTab ? mainTab.querySelector('.out-selector') : null;
-  const wants = key => {
-    const src = staticBar || panel;
-    const cb = src.querySelector(`[data-key="${key}"]`);
-    return !cb || cb.checked;
+  const checkCol = (arr, min) => {
+    const items = (arr || []).filter(x => (x||'').toString().trim());
+    const rows = (items.length ? items : new Array(min || 3).fill('')).map(x => `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(x)}</span></div>`);
+    return `<div class="ws-checklist">${rows.join('')}</div>`;
   };
-  const selected = pages.filter(pg => wants(pg.dataset.pp));
-  if (!selected.length) { showToast('Nothing selected to print'); return; }
+  const ac = fu.annualChecklist || {};
 
-  document.querySelectorAll('.out-content').forEach(c => c.classList.remove('print-target','scc-host'));
-  pages.forEach(pg => pg.classList.remove('pp-print','pp-last'));
-  host.classList.add('print-target','scc-host');
-  selected.forEach(pg => pg.classList.add('pp-print'));
-  selected[selected.length - 1].classList.add('pp-last');
+  const followUpHTML = `
+    <div class="ws-section">
+      <div class="ws-sec-head"><span class="n">4</span><h3>Follow-up Plan</h3><span class="meta">Next visit · targets · review</span></div>
+      <div class="ws-sec-body">
+        <div class="ws-fu-grid">
+          <div class="ws-fu-card"><div class="t">Next visit</div><div class="v">${wsVal(fu.nextVisit)}</div></div>
+          <div class="ws-fu-card"><div class="t">Labs to repeat</div><div class="v">${wsVal(fu.labsToRepeat)}</div></div>
+          <div class="ws-fu-card"><div class="t">Clinical targets</div><div class="v">${wsVal(fu.clinicalTargets)}</div></div>
+          <div class="ws-fu-card"><div class="t">Patient check-in (DM Pro / WhatsApp)</div><div class="v">${wsVal(fu.patientCheckin)}</div></div>
+        </div>
+        <div class="ws-grid2">
+          <div class="ws-card"><div class="ws-card-title">Goals reviewed &amp; agreed</div><div class="ws-checklist">${goalsHTML}</div></div>
+          <div class="ws-card"><div class="ws-card-title orange">Patient satisfaction &amp; engagement</div><div class="ws-checklist">${psHTML}</div></div>
+        </div>
+        <div class="ws-card" style="margin-top:13px;"><div class="ws-card-title">Annual review checklist</div>
+          <div class="ws-grid3">
+            <div><div class="ws-flabel" style="margin-bottom:5px;">Bloods</div>${checkCol(ac.bloods, 4)}</div>
+            <div><div class="ws-flabel" style="margin-bottom:5px;">Examinations</div>${checkCol(ac.examinations, 4)}</div>
+            <div><div class="ws-flabel" style="margin-bottom:5px;">Education</div>${checkCol(ac.education, 4)}</div>
+          </div>
+        </div>
+        <div class="ws-sign">
+          <div class="line">Doctor's signature &amp; seal</div>
+          <div class="line">Patient signature</div>
+        </div>
+      </div>
+    </div>`;
+
+  el.innerHTML = `
+    ${metaBanner}
+    <div class="ws-doc" id="${targetId}_ws">
+      ${headHTML}
+      ${prescriptionHTML}
+      ${dietHTML}
+      ${exerciseHTML}
+      ${followUpHTML}
+      <div class="ws-foot"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Pvt Ltd · 799 4884 799</div><div>Clinical decision support — prescriber judgement is final. Verify drug data before dispensing.</div></div>
+    </div>
+    <div class="ws-actions no-print">
+      <button class="btn btn-purple" onclick="printWorksheet('${targetId}')" style="padding:0.7rem 2rem;">🖨 Print / Save as PDF</button>
+      <button class="btn btn-ghost" disabled title="Coming soon — DM Pro integration pending">Save to DM Pro</button>
+    </div>`;
+
+  el.classList.add('visible');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function printWorksheet(targetId) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
-  panel.closest('.tab-panel').classList.add('print-active');
-
+  const panel = document.getElementById(targetId).closest('.tab-panel');
+  if (panel) panel.classList.add('print-active');
   window.print();
-
-  host.classList.remove('print-target','scc-host');
-  pages.forEach(pg => pg.classList.remove('pp-print','pp-last'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
 }
 

@@ -159,141 +159,117 @@ function repairJSON(str) {
 
 /* ============ POST /api/analyse — Claude clinical-structuring proxy ============ */
 app.post('/api/analyse', async (req, res) => {
-  const { transcript, patientDetails, selectedOutputs } = req.body || {};
+  const { transcript, patientDetails } = req.body || {};
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'Server is missing ANTHROPIC_API_KEY configuration' });
   if (!transcript) return res.status(400).json({ error: 'Missing transcript or clinical notes' });
 
   const outputInstructions = `## OUTPUT FORMAT FOR THIS TOOL
 
-You are operating inside SugarCARE Consult — a clinical documentation tool. The patient data is from a real consultation.
+You are operating inside SugarCARE Consult — a structured clinical WORKSHEET generator. The patient summary is produced after a dietitian visit (DM Pro). Your job is to FILL Dr. Rakesh's fixed worksheet, not to write free-form prose. You are a template-filler: every value you emit lands in a pre-drawn field.
 
-Apply the full Cardiometabolic Clinical Algorithm v4. Run all three layers (Territory → Psychosocial → Clinical Core) before writing output.
+Apply the full Cardiometabolic Clinical Algorithm v4 internally (Territory → Psychosocial → Clinical Core), but EXPRESS the result only as the worksheet JSON below.
 
 Respond ONLY in valid JSON. No markdown, no preamble, no text outside the JSON object.
 
-## FORMULARY RULE — STRICT
-The SugarCARE drug formulary is provided above. Prescribe ONLY from it.
-- Use the EXACT brand name, salt content, MRP per unit, and pack size as listed — no invention, no approximation.
-- If the clinically correct drug or class is absent from the formulary: do NOT substitute silently. Record it in audit.findings with direction "not-stocked", then prescribe the closest available formulary alternative with formularyStatus "in-formulary".
-- When multiple brands share the same salt, select the lowest-MRP option unless a clinical reason (tolerability, dose form, strength) justifies otherwise.
-- Never write "JanAushadhi", never write a cost tier label, never write a price not listed in the formulary.
-- Every medication entry must have formularyStatus: "in-formulary" or "indicated-not-stocked".
+## THE TWO-COLUMN PRESCRIPTION (the defining feature)
+The worksheet shows the prescription as TWO PARALLEL COLUMNS:
+- "idealRx" = what ADA / RSSDI / ICMR guidelines + the SKILL decision protocol recommend for THIS patient — by molecule or class, with NO formulary constraint. This is the evidence-based ideal.
+- "formularyRx" = the closest match actually available in the formulary above, with the exact brand name, plus a one-line "switchReason" explaining the substitution from the ideal.
+- "auditFlags" = the comparison BETWEEN the two columns, collapsed into the worksheet. This IS the audit — not a separate analysis. For each meaningful line, classify the relationship using "level":
+  * "match"              = same molecule available; formulary directly matches the ideal.
+  * "class-equivalent"   = a same-class molecule is substituted (e.g. one DPP-4i for another); efficacy maintained.
+  * "different-molecule" = a different molecule / efficacy profile is used because the ideal is unavailable — the "text" MUST document the clinical reason.
+  * "cost-availability"  = note about cost or stock availability influencing the choice.
 
-## CORE SECTIONS — ALWAYS GENERATED
-context, audit, idealWorkup, and idealPrescription are MANDATORY on every run regardless of selectedOutputs.
-selectedOutputs may only control idealDiet, idealExercise, and idealFollowUpPlan.
+## FORMULARY RULES (apply to formularyRx)
+- Use the formulary above as the source of truth for brand, salt/strength, and price. Use EXACT brand names — no invention, no approximation.
+- When several brands share the same salt, pick the lowest-MRP option unless a clinical reason (tolerability, dose form, strength) justifies otherwise.
+- If the ideal molecule has NO acceptable formulary equivalent, still record it: put the ideal in idealRx, leave the formularyRx brand blank or name the nearest option, and raise a "different-molecule" or "cost-availability" auditFlag explaining the gap.
 
-## AUDIT — ALWAYS RUN
-Always audit the prescription present in the transcript:
-- If an existing Rx is found: populate audit.findings with gravity-graded findings for every variance.
-- If no existing Rx is present: set audit.mode = "SUGGEST", audit.findings = [], audit.summary = "No existing prescription — SUGGEST mode."
+## SINGLE-AGENT / FDC SAFETY RULE
+- Never let a formulary fixed-dose combination (FDC) pill double-count a drug already prescribed separately. Example to avoid: Glyciphage SR (metformin) as its own line AND a glimepiride+metformin FDC — this pushes total metformin over ceiling.
+- When tapering or stopping a drug, prefer the SINGLE-AGENT formulary version so the dose can be titrated independently.
+- Always sum the total daily dose of any shared ingredient across ALL formularyRx lines (including the hidden component inside any FDC) and keep it within the skill's stated ceiling (e.g. metformin ≤2g/day). If an FDC would breach the ceiling, use single agents instead.
 
-## IDEAL WORKUP — ALWAYS GENERATED
-List every investigation and anthropometric measurement that is absent but clinically required to complete a safe workup, reach a diagnosis, or justify evidence-based therapy.
+## FILLING RULES
+- Fill EVERY field you can justify from the summary and guidelines. If a value is genuinely unknown or not applicable, return an empty string "" (or [] for arrays) — the worksheet renders it as a blank line the doctor completes by hand. Do NOT invent vitals, lab values, or history that are not in the summary.
+- header.bmi: compute from weight/height if both are present, else "".
+- Diet "currentStatus" ratings (carbQuality, proteinAdequacy, dietaryFibre, healthyFats, mealRegularity, hydration): use ONE short rating word the worksheet can colour-grade — e.g. "Poor", "Low", "Adequate", "Good", "Irregular", "Regular".
+- plateMethod proportions are fixed by the Diabetes Plate Method (½ non-starchy veg, ¼ lean protein, ¼ quality carb); fill the descriptive text for each.
+- shortTermGoals phases must be drawn from: "Week 1-2", "Week 3-4", "Month 2", "Month 3+".
+- Keep every field terse — worksheet cells, not paragraphs.
 
-Available JSON fields — all four core sections are mandatory; idealDiet, idealExercise, idealFollowUpPlan are included only if in selectedOutputs:
+Return EXACTLY this JSON shape (all keys present; fill or leave blank):
 
 {
-  "context": {
-    "summary": "2-3 sentence narrative clinical picture — not a list",
-    "missingData": ["critical missing items with one-line clinical reason each"],
-    "deviations": ["abnormal values with targets"],
-    "internalIssues": ["comorbidities, drug risks, psychosocial barriers, alternative medicine flags"],
-    "redFlags": ["urgent items requiring immediate action"]
+  "header": {
+    "patientName": "", "age": "", "sex": "", "weight": "", "height": "",
+    "bmi": "", "diagnosis": "", "visitType": "", "duration": ""
   },
-  "audit": {
-    "mode": "SUGGEST | AUDIT | REVIEW | FLAG | SCREEN | RISK",
-    "summary": "one-paragraph narrative summary of the audit",
-    "findings": [
-      {
-        "finding": "description of the variance from guideline standard",
-        "direction": "omitted | under-dosed | over-dosed | wrong-drug | missing | contraindicated | not-stocked | appropriate",
-        "gravity": "Grade 1 | Grade 2 | Grade 3",
-        "standard": "what the algorithm recommends for this patient",
-        "source": "guideline name + year",
-        "grade": "[1A] | [1B] | [1C] | [2A] | [2B] | [2C] | [GPP]",
-        "correction": "recommended corrective action"
-      }
+  "prescription": {
+    "idealRx": [
+      { "drugGeneric": "", "dose": "", "freq": "", "duration": "", "rationale": "" }
     ],
-    "gravityTally": { "grade3": 0, "grade2": 0, "grade1": 0, "appropriate": 0 }
-  },
-  "idealWorkup": {
-    "investigations": [
-      {
-        "test": "test name",
-        "reason": "clinical reason",
-        "purpose": "workup | diagnosis | therapy-justification",
-        "priority": "urgent | this-visit | routine",
-        "actionTrigger": "what result changes management, e.g. CK >5x ULN → stop statin"
-      }
+    "formularyRx": [
+      { "drugGeneric": "", "brand": "", "dose": "", "freq": "", "switchReason": "" }
     ],
-    "anthropometryMissing": ["e.g. waist circumference"],
-    "summary": "one line: what cannot be safely concluded until these return"
-  },
-  "idealPrescription": {
-    "medications": [
-      {
-        "brand": "exact brand name from formulary",
-        "salt": "salt content + strength from formulary, e.g. Metformin (500mg)",
-        "dose": "e.g. 500mg",
-        "frequency": "e.g. Twice daily with meals",
-        "duration": "e.g. 3 months",
-        "instructions": "concise patient instruction",
-        "mrp": "MRP per unit exactly as in formulary, e.g. ₹1.98/unit",
-        "packSize": "pack size from formulary",
-        "rationale": "one line — why this drug for this patient",
-        "formularyStatus": "in-formulary | indicated-not-stocked"
-      }
+    "auditFlags": [
+      { "level": "match | class-equivalent | different-molecule | cost-availability", "text": "" }
     ],
-    "specialInstructions": "string",
-    "monitoringParameters": ["what to check at next visit"]
+    "doctorNotes": ""
   },
-  "idealDiet": {
-    "targetCalories": 0,
-    "macros": { "carbsPercent": 0, "proteinPercent": 0, "fatPercent": 0 },
-    "keralaMeals": ["Kerala-specific food swaps"],
-    "hydration": "string"
-  },
-  "idealExercise": {
-    "type": "string",
-    "minutesPerDay": 0,
-    "daysPerWeek": 0,
-    "instructions": "string"
-  },
-  "idealFollowUpPlan": {
-    "nextVisitType": "Titration / Q1 / Q2 / Q3 / Annual",
-    "nextVisitDate": "YYYY-MM-DD",
-    "nextVisitFocus": ["what to assess"],
-    "targetsByNextVisit": {
-      "hba1c": "target",
-      "weight": "target",
-      "bp": "target",
-      "other": []
+  "diet": {
+    "currentStatus": {
+      "carbQuality": "", "proteinAdequacy": "", "dietaryFibre": "", "healthyFats": "",
+      "mealRegularity": "", "hydration": "", "keyConcern": "", "currentCalories": "", "eatingPattern": ""
     },
-    "warningSignsToReturn": ["urgent symptoms"]
+    "whatsNeeded": {
+      "calorieTarget": "", "carbPercent": "", "fat": "", "fibre": "", "sodium": "",
+      "water": "", "mealFrequency": "", "prioritySwitch": "", "evidenceBase": ""
+    },
+    "plateMethod": { "nonStarchyVeg": "", "leanProtein": "", "qualityCarb": "", "whyItWorks": "" },
+    "includeEncourage": [ { "category": "", "detail": "" } ],
+    "restrictAvoid": [ { "category": "", "detail": "" } ],
+    "mealTiming": [ { "meal": "", "guidance": "" } ],
+    "shortTermGoals": [ { "phase": "Week 1-2 | Week 3-4 | Month 2 | Month 3+", "goal": "" } ]
+  },
+  "exercise": {
+    "currentActivity": {
+      "activityClass": "", "stepsPerDay": "", "structuredEx": "", "occupation": "",
+      "barriers": "", "contraindications": "", "footExamDone": ""
+    },
+    "idealTargets": { "aerobic": "", "resistance": "", "flexibility": "", "steps": "", "sittingBreaks": "" },
+    "adaptedPlan": {
+      "startWith": "", "resistanceAlt": "", "kneeJointCare": "", "bgMonitoring": "", "footCheck": "", "hydration": ""
+    },
+    "pillars": [ { "pillar": "", "points": [] } ],
+    "progressiveTargets": [ { "phase": "", "target": "" } ],
+    "safety": [ { "item": "", "detail": "" } ],
+    "whatNotToDo": [ "" ]
+  },
+  "followUp": {
+    "nextVisit": "", "labsToRepeat": "", "clinicalTargets": "", "patientCheckin": "",
+    "goalsReviewed": [ { "goal": "", "value": "" } ],
+    "annualChecklist": { "bloods": [], "examinations": [], "education": [] },
+    "patientSatisfaction": { "concernsAddressed": "", "confidence": "", "barriersIdentified": "", "nextReviewBooked": "" }
   }
 }`;
 
   const system = [
     { type: 'text', text: skillText },
-    { type: 'text', text: formularyText },
-    { type: 'text', text: outputInstructions, cache_control: { type: 'ephemeral', ttl: '1h' } }
+    { type: 'text', text: formularyText, cache_control: { type: 'ephemeral', ttl: '1h' } },
+    { type: 'text', text: outputInstructions }
   ];
 
-  const coreOutputs = ['context', 'audit', 'idealWorkup', 'idealPrescription'];
-  const optionalOutputs = Array.isArray(selectedOutputs) && selectedOutputs.length
-    ? selectedOutputs.filter(k => ['idealDiet', 'idealExercise', 'idealFollowUpPlan'].includes(k))
-    : ['idealDiet', 'idealExercise', 'idealFollowUpPlan'];
-  const requested = [...coreOutputs, ...optionalOutputs];
-
+  // The worksheet is fixed: every section is always generated. selectedOutputs is
+  // accepted for backward compatibility with the client but no longer gates output.
   const userMessage = `Patient details: ${JSON.stringify(patientDetails || {})}
-Selected outputs: ${JSON.stringify(requested)}
 
-Consultation transcript / clinical notes:
+DM Pro patient summary / consultation notes:
 ${transcript}
 
-ALWAYS audit the existing prescription in the transcript AND produce the full ideal plan. Prescribe ONLY from the formulary using the exact brand name, salt, and MRP. Respond in valid JSON only.`;
+Fill the complete SugarCARE worksheet for this patient: both prescription columns (idealRx and formularyRx) with the auditFlags comparison between them, plus the diet, exercise, and follow-up sections. Respond in valid JSON only — exactly the worksheet shape specified.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -330,11 +306,13 @@ ALWAYS audit the existing prescription in the transcript AND produce the full id
     const clean = raw.replace(/```json\s*|```\s*/g, '').trim();
 
     let parsed;
+    let wasRepaired = false;
     try {
       parsed = JSON.parse(clean);
     } catch (e) {
       try {
         parsed = JSON.parse(repairJSON(clean));
+        wasRepaired = true;
         console.log('[analyse] JSON repaired successfully');
       } catch (e2) {
         console.error('[analyse] JSON.parse failed:', e.message);
@@ -345,7 +323,16 @@ ALWAYS audit the existing prescription in the transcript AND produce the full id
       }
     }
 
-    return res.status(200).json(parsed);
+    const isPartial = stopReason === 'max_tokens';
+    if (isPartial || wasRepaired) {
+      parsed._meta = {
+        ...(isPartial ? { partial: true } : {}),
+        ...(wasRepaired ? { repaired: true } : {}),
+        stopReason
+      };
+    }
+
+    return res.status(isPartial ? 206 : 200).json(parsed);
   } catch (e) {
     console.error('[analyse] request failed:', e.message);
     return res.status(502).json({ error: 'Analysis failed: ' + e.message });
