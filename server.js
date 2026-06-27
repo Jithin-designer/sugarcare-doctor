@@ -272,6 +272,13 @@ Fill the SugarCARE prescription for this patient: the ideal prescription (idealR
       };
     }
 
+    parsed._usage = {
+      input_tokens:  data.usage?.input_tokens ?? 0,
+      output_tokens: data.usage?.output_tokens ?? 0,
+      cache_read:    data.usage?.cache_read_input_tokens ?? 0,
+      cache_create:  data.usage?.cache_creation_input_tokens ?? 0,
+    };
+
     return res.status(isPartial ? 206 : 200).json(parsed);
   } catch (e) {
     console.error('[analyse] request failed:', e.message);

@@ -183,6 +183,13 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 /* Footer */
 .app-footer{text-align:center;padding:1rem;font-size:0.75rem;color:var(--text-sec);border-top:1px solid var(--border);background:var(--surface);}
 
+/* Token usage bar — screen only */
+.token-bar{display:flex;gap:1.1rem;align-items:center;background:#f4f4f5;border:1px solid #e4e4e7;border-radius:8px;padding:0.4rem 0.9rem;margin-bottom:0.75rem;font-family:ui-monospace,monospace;font-size:0.72rem;color:#52525b;flex-wrap:wrap;}
+.token-bar-item{display:flex;align-items:center;gap:0.3rem;}
+.token-bar-label{color:#a1a1aa;font-weight:500;}
+.token-bar-value{color:#18181b;font-weight:700;}
+.token-bar-cost{margin-left:auto;color:#6d28d9;font-weight:700;}
+
 /* Print — the worksheet is the only thing that prints, clean A4 */
 @media print{
   @page{size:A4 portrait;margin:9mm;}
@@ -1055,6 +1062,21 @@ function wsRows(arr, cellFns, minRows) {
   return rows.join('');
 }
 
+function renderTokenBar(u) {
+  if (!u) return '';
+  const fmt = n => n.toLocaleString();
+  const total = u.input_tokens + u.output_tokens;
+  const cachePct = u.input_tokens > 0 ? Math.round(u.cache_read / u.input_tokens * 100) : 0;
+  const cost = (u.input_tokens * 3 + u.cache_read * 0.3 + u.cache_create * 3.75 + u.output_tokens * 15) / 1e6;
+  const cacheHit = cachePct > 0 ? ` <span class="token-bar-label">(${cachePct}% cached)</span>` : '';
+  return `<div class="token-bar no-print">
+    <span class="token-bar-item"><span class="token-bar-label">in</span><span class="token-bar-value">${fmt(u.input_tokens)}</span>${cacheHit}</span>
+    <span class="token-bar-item"><span class="token-bar-label">out</span><span class="token-bar-value">${fmt(u.output_tokens)}</span></span>
+    <span class="token-bar-item"><span class="token-bar-label">total</span><span class="token-bar-value">${fmt(total)}</span></span>
+    <span class="token-bar-cost">≈ $${cost.toFixed(4)}</span>
+  </div>`;
+}
+
 function renderOutput(targetId, data, patient) {
   const el = document.getElementById(targetId);
   const p  = patient || {};
@@ -1151,6 +1173,7 @@ function renderOutput(targetId, data, patient) {
     </div>`;
 
   el.innerHTML = `
+    ${renderTokenBar(data._usage)}
     ${metaBanner}
     <div class="ws-doc" id="${targetId}_ws">
       ${headHTML}
