@@ -300,66 +300,17 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .ws-col-label{font-size:10px;font-weight:800;color:var(--p);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:flex;justify-content:space-between;align-items:baseline;}
 .ws-col-label .sub{font-size:8.5px;font-weight:500;color:var(--muted);text-transform:none;letter-spacing:0;}
 
-/* Audit flags */
-.ws-audit{margin-top:13px;border-top:1px dashed var(--line);padding-top:11px;}
-.ws-audit-title{font-size:10px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
-.ws-audit-row{display:flex;align-items:baseline;gap:9px;padding:3px 0;font-size:11px;}
-.ws-check{width:13px;height:13px;border:1.5px solid var(--p);border-radius:3px;flex-shrink:0;
-  display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:800;line-height:1;position:relative;top:2px;}
-.ws-check.on{background:var(--p);}
-.ws-audit-label{font-weight:600;color:var(--ink);flex-shrink:0;}
-.ws-audit-text{flex:1;color:var(--muted);border-bottom:1px solid var(--line);min-height:1em;padding-bottom:1px;}
-.ws-notes-line{display:flex;align-items:baseline;gap:8px;margin-top:9px;font-size:11px;}
-.ws-notes-line .lab{font-weight:700;color:var(--muted);white-space:nowrap;}
-.ws-notes-line .val{flex:1;border-bottom:1px solid var(--line);min-height:1.1em;padding-bottom:1px;}
+/* Frequency badge (DM Pro morning-noon-night pattern) */
+.rx-freq-badge{display:inline-block;background:#2E7D32;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.03em;white-space:nowrap;}
 
-/* Status bars (diet current status) */
-.ws-bar-row{display:grid;grid-template-columns:120px 1fr 64px;align-items:center;gap:9px;padding:3px 0;font-size:10.5px;}
-.ws-bar-row .lab{color:var(--ink);font-weight:600;}
-.ws-bar-track{height:7px;background:#EEEBF4;border-radius:4px;overflow:hidden;}
-.ws-bar-fill{height:100%;border-radius:4px;}
-.ws-bar-rate{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;text-align:right;}
+/* Suggested labs card */
+.rx-labs-card{background:rgba(74,47,160,0.07);border-radius:8px;padding:10px 14px;}
+.rx-labs-list{list-style:disc;padding-left:18px;font-size:11.5px;line-height:1.85;color:var(--ink);}
 
-/* Plate method donut */
-.ws-plate{display:flex;align-items:center;gap:16px;}
-.ws-plate .legend{flex:1;display:flex;flex-direction:column;gap:6px;font-size:10.5px;}
-.ws-plate .legend .it{display:flex;gap:7px;align-items:baseline;}
-.ws-plate .legend .sw{width:10px;height:10px;border-radius:2px;flex-shrink:0;position:relative;top:1px;}
-.ws-plate .legend .frac{font-weight:800;color:var(--ink);white-space:nowrap;}
-
-/* Two-column include/avoid + lists */
-.ws-itemlist{font-size:10.5px;}
-.ws-itemlist .it{display:flex;gap:7px;padding:3px 0;border-bottom:1px solid #F0EDF7;line-height:1.45;}
-.ws-itemlist .it:last-child{border-bottom:none;}
-.ws-itemlist .it::before{content:'›';color:var(--o);font-weight:800;flex-shrink:0;}
-.ws-itemlist .cat{font-weight:700;color:var(--ink);}
-.ws-itemlist.avoid .it::before{content:'×';color:var(--o);}
-
-/* Timeline (short-term goals / progressive targets) */
-.ws-timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
-.ws-tl-card{border:1px solid var(--line);border-radius:8px;padding:8px 9px;background:var(--fill);}
-.ws-tl-phase{font-size:9px;font-weight:800;color:var(--o);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
-.ws-tl-goal{font-size:10px;color:var(--ink);line-height:1.45;min-height:1.4em;}
-
-/* Pillars */
-.ws-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:11px;}
-.ws-pillar{border:1px solid var(--line);border-top:3px solid var(--p);border-radius:8px;padding:10px;}
-.ws-pillar h4{font-size:11px;font-weight:800;color:var(--p);margin-bottom:6px;}
-.ws-pillar ul{list-style:none;font-size:10px;line-height:1.5;}
-.ws-pillar li{padding:2px 0 2px 12px;position:relative;}
-.ws-pillar li::before{content:'•';color:var(--o);font-weight:800;position:absolute;left:0;}
-
-/* Checklist (goals reviewed / annual review / what-not-to-do) */
-.ws-checklist{font-size:10.5px;}
-.ws-checklist .row{display:flex;align-items:baseline;gap:8px;padding:3px 0;}
-.ws-checklist .row .gv{margin-left:auto;border-bottom:1px solid var(--line);min-width:70px;text-align:right;color:var(--p);font-weight:700;padding-bottom:1px;}
-.ws-checklist .lbl{color:var(--ink);}
-
-/* Follow-up top cards */
-.ws-fu-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:13px;}
-.ws-fu-card{border:1px solid var(--line);border-left:3px solid var(--p);border-radius:0 8px 8px 0;padding:9px 11px;}
-.ws-fu-card .t{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
-.ws-fu-card .v{font-size:11px;font-weight:600;color:var(--ink);line-height:1.45;min-height:1.3em;}
+/* Next consultation card */
+.rx-next-card{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.20);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:12px;}
+.rx-next-label{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+.rx-next-date{font-size:15px;font-weight:700;color:var(--ink);}
 
 /* Signature */
 .ws-sign{display:flex;justify-content:space-between;align-items:flex-end;margin-top:22px;gap:30px;}
@@ -888,18 +839,17 @@ async function transcribeAndAnalyse() {
     startAnalyseBar('analyseBar');
     try {
       const patient = getAudioPatient();
-      const selectedKeys = getCheckedKeys('selectorAudio');
       const aRes = await fetch('/api/analyse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript: pasteContent, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+        body: JSON.stringify({ transcript: pasteContent, patientDetails: patient })
       });
       const aData = await aRes.json();
       if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
       finishAnalyseBar('analyseBar');
       setStep('step', 2, 'done');
       setStep('step', 3, 'done');
-      renderOutput('audioOutput', aData, patient, selectedKeys);
+      renderOutput('audioOutput', aData, patient);
     } catch (e) {
       hideAnalyseBar('analyseBar');
       const active = document.querySelector('.progress-step.active');
@@ -960,11 +910,10 @@ async function transcribeAndAnalyse() {
     setStep('step', 2, 'active');
     startAnalyseBar('analyseBar');
     const patient = getAudioPatient();
-    const selectedKeys = getCheckedKeys('selectorAudio');
     const aRes = await fetch('/api/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript: finalTranscript, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+      body: JSON.stringify({ transcript: finalTranscript, patientDetails: patient })
     });
     const aData = await aRes.json();
     if (!aRes.ok) throw new Error(aData.error || 'Analysis failed');
@@ -972,7 +921,7 @@ async function transcribeAndAnalyse() {
     finishAnalyseBar('analyseBar');
     setStep('step', 2, 'done');
     setStep('step', 3, 'done');
-    renderOutput('audioOutput', aData, patient, selectedKeys);
+    renderOutput('audioOutput', aData, patient);
   } catch (e) {
     hideAnalyseBar('analyseBar');
     const active = document.querySelector('.progress-step.active');
@@ -994,18 +943,17 @@ async function reAnalyse() {
 
   try {
     const patient = getAudioPatient();
-    const selectedKeys = getCheckedKeys('selectorAudio');
     const res = await fetch('/api/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+      body: JSON.stringify({ transcript, patientDetails: patient })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Analysis failed');
     finishAnalyseBar('analyseBar');
     setStep('step', 2, 'done');
     setStep('step', 3, 'done');
-    renderOutput('audioOutput', data, patient, selectedKeys);
+    renderOutput('audioOutput', data, patient);
   } catch (e) {
     hideAnalyseBar('analyseBar');
     setStep('step', 2, 'error');
@@ -1058,18 +1006,17 @@ async function manualAnalyse() {
   setStep('mStep', 1, 'active');
   startAnalyseBar('manualAnalyseBar');
   try {
-    const selectedKeys = getCheckedKeys('selectorManual');
     const res = await fetch('/api/analyse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript, patientDetails: patient, selectedOutputs: toApiOutputs(selectedKeys) })
+      body: JSON.stringify({ transcript, patientDetails: patient })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Analysis failed');
     finishAnalyseBar('manualAnalyseBar');
     setStep('mStep', 1, 'done');
     setStep('mStep', 2, 'done');
-    renderOutput('manualOutput', data, patient, selectedKeys);
+    renderOutput('manualOutput', data, patient);
   } catch (e) {
     hideAnalyseBar('manualAnalyseBar');
     setStep('mStep', 1, 'error');
@@ -1083,22 +1030,6 @@ function calcManualBMI() {
   const h = parseFloat(document.getElementById('m_ht').value);
   document.getElementById('m_bmi').value = (w > 0 && h > 0) ? (w / ((h/100)**2)).toFixed(1) : '';
 }
-
-/* ============ OUTPUT SELECTION ============ */
-// Only the optional sections are controlled by checkboxes; core sections always generated server-side.
-const OUTPUT_API_KEY = { diet: 'idealDiet', exercise: 'idealExercise', followup: 'idealFollowUpPlan' };
-
-// Read which outputs the doctor checked. Returns UI keys for tab/print visibility.
-function getCheckedKeys(barId) {
-  const bar = document.getElementById(barId);
-  if (!bar) return Object.keys(OUTPUT_API_KEY);
-  const checked = [...bar.querySelectorAll('input[type="checkbox"][data-key]')].filter(cb => cb.checked).map(cb => cb.dataset.key);
-  return checked.length ? checked : Object.keys(OUTPUT_API_KEY);
-}
-
-// Translate optional UI keys → API keys. Core sections (context/audit/idealWorkup/idealPrescription)
-// are always added server-side regardless of this list.
-function toApiOutputs(keys) { return keys.map(k => OUTPUT_API_KEY[k]).filter(Boolean); }
 
 /* ============ WORKSHEET RENDERER ============ */
 function esc(s) { const d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
@@ -1115,26 +1046,6 @@ function wsNiceDate(s) {
   return d.getDate() + ' ' + m[d.getMonth()] + ' ' + d.getFullYear();
 }
 
-// Map a one-word diet-status rating to a coloured progress bar.
-// ── This is a clinical judgement call: how strongly each rating word is graded.
-//    Tune the buckets/colours here to match how Dr. Rakesh wants status read at a glance. ──
-function ratingToBar(rating) {
-  const r = (rating || '').toLowerCase().trim();
-  if (!r) return { pct: 0, color: '#D9D4E8', label: '' };
-  if (/(poor|none|very low|bad|absent)/.test(r))                  return { pct: 22, color: '#C0492F', label: rating };
-  if (/(low|inadequate|irregular|insufficient|infrequent)/.test(r)) return { pct: 42, color: '#E86A1A', label: rating };
-  if (/(moderate|fair|partial|average|borderline)/.test(r))       return { pct: 60, color: '#D99A12', label: rating };
-  if (/(adequate|regular|ok|acceptable|stable|sufficient)/.test(r)) return { pct: 78, color: '#6E9B5E', label: rating };
-  if (/(good|excellent|optimal|high|great)/.test(r))             return { pct: 92, color: '#2E7D32', label: rating };
-  return { pct: 55, color: '#6B6792', label: rating };
-}
-function wsBarRow(label, rating) {
-  const b = ratingToBar(rating);
-  return `<div class="ws-bar-row"><span class="lab">${esc(label)}</span>`
-    + `<div class="ws-bar-track"><div class="ws-bar-fill" style="width:${b.pct}%;background:${b.color};"></div></div>`
-    + `<span class="ws-bar-rate" style="color:${b.color};">${b.label ? esc(b.label) : ''}</span></div>`;
-}
-
 // Build table rows from data, padded to a minimum count with blank ruled rows.
 function wsRows(arr, cellFns, minRows) {
   const cols = cellFns.length;
@@ -1144,52 +1055,21 @@ function wsRows(arr, cellFns, minRows) {
   return rows.join('');
 }
 
-// Include/avoid + meal-timing style item lists (category + detail), padded with blanks.
-function wsItemList(arr, cls, minRows) {
-  const items = (arr || []).filter(it => it && ((it.category||'').trim() || (it.detail||'').trim() || (it.meal||'').trim() || (it.guidance||'').trim() || (it.item||'').trim()));
-  const rows = items.map(it => {
-    const head = it.category != null ? it.category : (it.meal != null ? it.meal : it.item);
-    const body = it.detail != null ? it.detail : it.guidance;
-    return `<div class="it"><span><span class="cat">${wsVal(head)}</span> ${wsVal(body)}</span></div>`;
-  });
-  const blank = `<div class="it"><span><span class="ws-bl" style="min-width:80px"></span> <span class="ws-bl" style="min-width:120px"></span></span></div>`;
-  while (rows.length < (minRows || 0)) rows.push(blank);
-  return `<div class="ws-itemlist ${cls || ''}">${rows.join('')}</div>`;
-}
-
-function wsCheckRow(text, value, hasValue) {
-  return `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(text)}</span>`
-    + (hasValue ? `<span class="gv">${wsVal(value)}</span>` : '') + `</div>`;
-}
-
 function renderOutput(targetId, data, patient) {
   const el = document.getElementById(targetId);
   const p  = patient || {};
   const h  = data.header || {};
-  const rx = data.prescription || {};
-  const diet = data.diet || {};
-  const ex = data.exercise || {};
-  const fu = data.followUp || {};
-  const cs = diet.currentStatus || {};
-  const wn = diet.whatsNeeded || {};
-  const pm = diet.plateMethod || {};
-  const ca = ex.currentActivity || {};
-  const it = ex.idealTargets || {};
-  const ap = ex.adaptedPlan || {};
-
   const dr = cfg('doctor'), cl = cfg('clinic'), reg = cfg('regNo');
   const today = p.date || new Date().toISOString().split('T')[0];
   const clinicName = cl ? 'SugarCARE ' + esc(cl) : '';
-  // Header values come from the model; fall back to the patient form where blank.
-  const hName = h.patientName || p.name;
-  const hAge  = h.age || p.age;
-  const hSex  = h.sex || p.gender;
-  const hVisit = h.visitType || p.visitType;
+  const hName = h.patientName || p.name || '';
+  const hAge  = h.age || p.age || '';
+  const hSex  = h.sex || p.gender || '';
 
   const metaBanner = (data._meta && (data._meta.partial || data._meta.repaired))
     ? `<div class="meta-warning-banner no-print">⚠ Partial result — output may be incomplete. Please re-run.</div>` : '';
 
-  /* ── Header ── */
+  /* ── Document header ── */
   const headHTML = `
     <div class="ws-head">
       <div><div class="ws-logo">Sugar<span>CARE</span></div><div class="tag ml">കൂടെ ഉണ്ടാകും, കുടുംബം പോലെ</div></div>
@@ -1203,233 +1083,69 @@ function renderOutput(targetId, data, patient) {
       ${wsField('Patient', hName)}
       ${wsField('Clinic / Reg', [clinicName, reg].filter(Boolean).join(' · '))}
       ${wsField('Age / Sex', [hAge, hSex].filter(v => (v||'').toString().trim()).join(' / '))}
-      ${wsField('Visit type', hVisit)}
-      ${wsField('Weight / Height', [h.weight, h.height].filter(v => (v||'').toString().trim()).join(' / '))}
-      ${wsField('Duration of illness', h.duration)}
-      ${wsField('BMI', h.bmi)}
       <div style="grid-column:1/-1;">${wsField('Diagnosis', h.diagnosis)}</div>
     </div>`;
 
-  /* ── Section 1: Prescription (ideal vs formulary + audit) ── */
-  const idealTable = `<table class="ws-table"><thead><tr><th style="width:26%">Drug (generic)</th><th style="width:13%">Dose</th><th style="width:13%">Freq</th><th style="width:15%">Duration</th><th>Rationale</th></tr></thead><tbody>${
-    wsRows(rx.idealRx, [m=>`<span class="gen">${wsVal(m.drugGeneric)}</span>`, m=>`<span class="dose">${wsVal(m.dose)}</span>`, m=>wsVal(m.freq), m=>wsVal(m.duration), m=>wsVal(m.rationale)], 4)
-  }</tbody></table>`;
-  const formularyTable = `<table class="ws-table"><thead><tr><th style="width:22%">Drug</th><th style="width:22%">Brand</th><th style="width:12%">Dose</th><th style="width:12%">Freq</th><th>Switch reason</th></tr></thead><tbody>${
-    wsRows(rx.formularyRx, [m=>`<span class="gen">${wsVal(m.drugGeneric)}</span>`, m=>`<span class="brand">${wsVal(m.brand)}</span>`, m=>`<span class="dose">${wsVal(m.dose)}</span>`, m=>wsVal(m.freq), m=>wsVal(m.switchReason)], 4)
-  }</tbody></table>`;
-
-  const AUDIT_LEVELS = [
-    ['match', 'Direct generic match — no concern'],
-    ['class-equivalent', 'Class-equivalent maintained — acceptable'],
-    ['different-molecule', 'Different molecule / efficacy profile — reason documented'],
-    ['cost-availability', 'Cost / availability consideration noted']
-  ];
-  const flags = rx.auditFlags || [];
-  const norm = s => (s || '').toLowerCase().trim().replace(/\s+/g, '-');
-  const auditHTML = AUDIT_LEVELS.map(([k, lab]) => {
-    const matched = flags.filter(f => norm(f.level) === k);
-    const on = matched.length > 0;
-    const txt = matched.map(f => f.text).filter(Boolean).join('; ');
-    return `<div class="ws-audit-row"><span class="ws-check ${on ? 'on' : ''}">${on ? '✓' : ''}</span><span class="ws-audit-label">${esc(lab)}</span><span class="ws-audit-text">${txt ? esc(txt) : ''}</span></div>`;
-  }).join('');
+  /* ── Section 1: Prescription ── */
+  const idealRx = (data.idealRx || []).filter(Boolean);
+  const rxRowsHTML = (() => {
+    const rows = idealRx.map((m, i) => {
+      const freq = (m.freq || '').trim();
+      const freqCell = freq ? `<span class="rx-freq-badge">${esc(freq)}</span>` : '<span class="ws-bl"></span>';
+      return `<tr>
+        <td style="text-align:center;color:var(--muted);font-weight:600;">${i + 1}</td>
+        <td><span class="gen">${wsVal(m.drugGeneric)}</span></td>
+        <td><span class="dose">${wsVal(m.dose)}</span></td>
+        <td>${freqCell}</td>
+        <td>${wsVal(m.duration)}</td>
+        <td>${wsVal(m.instructions)}</td>
+      </tr>`;
+    });
+    const blank = `<tr><td></td><td><span class="ws-bl"></span></td><td><span class="ws-bl"></span></td><td><span class="ws-bl"></span></td><td><span class="ws-bl"></span></td><td><span class="ws-bl"></span></td></tr>`;
+    while (rows.length < 4) rows.push(blank);
+    return rows.join('');
+  })();
 
   const prescriptionHTML = `
     <div class="ws-section">
-      <div class="ws-sec-head"><span class="n">1</span><h3>Prescription</h3><span class="meta">Ideal (evidence-based) vs Formulary (your brands) · with audit</span></div>
-      <div class="ws-sec-body">
-        <div class="ws-grid2">
-          <div><div class="ws-col-label">Ideal prescription <span class="sub">evidence-based</span></div>${idealTable}</div>
-          <div><div class="ws-col-label">Formulary prescription <span class="sub">your brands</span></div>${formularyTable}</div>
-        </div>
-        <div class="ws-audit">
-          <div class="ws-audit-title">Audit flags</div>
-          ${auditHTML}
-          <div class="ws-notes-line"><span class="lab">Doctor's notes:</span><span class="val">${(rx.doctorNotes||'').trim() ? esc(rx.doctorNotes) : ''}</span></div>
-        </div>
+      <div class="ws-sec-head"><span class="n">1</span><h3>Prescription</h3><span class="meta">Evidence-based ideal — ADA / RSSDI / ICMR</span></div>
+      <div class="ws-sec-body" style="overflow-x:auto;">
+        <table class="ws-table">
+          <thead><tr>
+            <th style="width:4%">#</th>
+            <th style="width:28%">Drug (generic)</th>
+            <th style="width:13%">Dosage</th>
+            <th style="width:13%">Frequency</th>
+            <th style="width:13%">Duration</th>
+            <th>Instructions</th>
+          </tr></thead>
+          <tbody>${rxRowsHTML}</tbody>
+        </table>
       </div>
     </div>`;
 
-  /* ── Section 2: Diet Advice ── */
-  const plateDonut = `<svg viewBox="0 0 36 36" width="92" height="92">
-    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#EEEBF4" stroke-width="5"/>
-    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#6E9B5E" stroke-width="5" stroke-dasharray="50 50" transform="rotate(-90 18 18)"/>
-    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#E86A1A" stroke-width="5" stroke-dasharray="25 75" stroke-dashoffset="-50" transform="rotate(-90 18 18)"/>
-    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#4A2FA0" stroke-width="5" stroke-dasharray="25 75" stroke-dashoffset="-75" transform="rotate(-90 18 18)"/>
-    <circle cx="18" cy="18" r="9.5" fill="#fff"/></svg>`;
-
-  const PHASES = ['Week 1-2', 'Week 3-4', 'Month 2', 'Month 3+'];
-  const goalTimeline = PHASES.map(ph => {
-    const g = (diet.shortTermGoals || []).find(x => norm(x.phase) === norm(ph));
-    return `<div class="ws-tl-card"><div class="ws-tl-phase">${esc(ph)}</div><div class="ws-tl-goal">${g && (g.goal||'').trim() ? esc(g.goal) : '<span class="ws-bl wide"></span>'}</div></div>`;
-  }).join('');
-
-  const dietHTML = `
+  /* ── Section 2: Suggested Labs ── */
+  const labs = (data.suggested_labs || []).filter(x => (x||'').toString().trim());
+  const labItems = labs.length
+    ? labs.map(l => `<li>${esc(l)}</li>`).join('')
+    : `<li><span class="ws-bl" style="min-width:160px;"></span></li>`;
+  const suggestedLabsHTML = `
     <div class="ws-section">
-      <div class="ws-sec-head"><span class="n">2</span><h3>Diet Advice</h3><span class="meta">Status · target · plate method · plan</span></div>
+      <div class="ws-sec-head"><span class="n">2</span><h3>Suggested Lab Tests</h3></div>
       <div class="ws-sec-body">
-        <div class="ws-grid2">
-          <div class="ws-card tint">
-            <div class="ws-card-title">Current diet status <span style="font-weight:500;text-transform:none;color:var(--muted);">(from DM Pro)</span></div>
-            ${wsBarRow('Carbohydrate quality', cs.carbQuality)}
-            ${wsBarRow('Protein adequacy', cs.proteinAdequacy)}
-            ${wsBarRow('Dietary fibre', cs.dietaryFibre)}
-            ${wsBarRow('Healthy fats', cs.healthyFats)}
-            ${wsBarRow('Meal regularity', cs.mealRegularity)}
-            ${wsBarRow('Hydration', cs.hydration)}
-            <div style="margin-top:8px;" class="ws-stack">
-              ${wsField('Key concern', cs.keyConcern)}
-              ${wsField('Calories / day', cs.currentCalories)}
-              ${wsField('Eating pattern', cs.eatingPattern)}
-            </div>
-          </div>
-          <div class="ws-card">
-            <div class="ws-card-title orange">What's needed <span style="font-weight:500;text-transform:none;color:var(--muted);">(evidence-based target)</span></div>
-            <div class="ws-stack">
-              ${wsField('Calorie target', wn.calorieTarget)}
-              ${wsField('Carbohydrate', wn.carbPercent)}
-              ${wsField('Fat', wn.fat)}
-              ${wsField('Dietary fibre', wn.fibre)}
-              ${wsField('Sodium', wn.sodium)}
-              ${wsField('Water', wn.water)}
-              ${wsField('Meal frequency', wn.mealFrequency)}
-              ${wsField('Priority switch', wn.prioritySwitch)}
-              ${wsField('Evidence base', wn.evidenceBase)}
-            </div>
-          </div>
-        </div>
-
-        <div class="ws-card" style="margin-top:13px;">
-          <div class="ws-card-title">The Diabetes Plate Method</div>
-          <div class="ws-plate">
-            ${plateDonut}
-            <div class="legend">
-              <div class="it"><span class="sw" style="background:#6E9B5E;"></span><span><span class="frac">½ plate</span> — Non-starchy vegetables · ${wsVal(pm.nonStarchyVeg)}</span></div>
-              <div class="it"><span class="sw" style="background:#E86A1A;"></span><span><span class="frac">¼ plate</span> — Lean protein · ${wsVal(pm.leanProtein)}</span></div>
-              <div class="it"><span class="sw" style="background:#4A2FA0;"></span><span><span class="frac">¼ plate</span> — Quality carbohydrate · ${wsVal(pm.qualityCarb)}</span></div>
-            </div>
-          </div>
-          <div class="ws-notes-line" style="margin-top:9px;"><span class="lab">Why it works:</span><span class="val">${(pm.whyItWorks||'').trim() ? esc(pm.whyItWorks) : ''}</span></div>
-        </div>
-
-        <div class="ws-grid2" style="margin-top:13px;">
-          <div class="ws-card"><div class="ws-card-title">Include &amp; encourage</div>${wsItemList(diet.includeEncourage, '', 3)}</div>
-          <div class="ws-card"><div class="ws-card-title orange">Restrict &amp; avoid</div>${wsItemList(diet.restrictAvoid, 'avoid', 3)}</div>
-        </div>
-
-        <div class="ws-card" style="margin-top:13px;"><div class="ws-card-title">Meal timing &amp; pattern</div>${wsItemList(diet.mealTiming, '', 3)}</div>
-
-        <div style="margin-top:13px;"><div class="ws-card-title" style="color:var(--p);">Short-term diet plan <span style="font-weight:500;text-transform:none;color:var(--muted);">(SMART)</span></div>
-          <div class="ws-timeline">${goalTimeline}</div>
-        </div>
-        <div class="ws-notes-line"><span class="lab">Doctor's note:</span><span class="val"></span></div>
+        <div class="rx-labs-card"><ul class="rx-labs-list">${labItems}</ul></div>
       </div>
     </div>`;
 
-  /* ── Section 3: Exercise Advice ── */
-  const PILLAR_DEFAULTS = ['Aerobic', 'Resistance', 'Flexibility & balance'];
-  const pillars = (ex.pillars || []).slice();
-  while (pillars.length < 3) pillars.push({ pillar: PILLAR_DEFAULTS[pillars.length], points: [] });
-  const pillarHTML = pillars.slice(0, 3).map((p, i) => {
-    const pts = (p.points || []).filter(x => (x||'').toString().trim());
-    const lis = pts.length ? pts.map(x => `<li>${esc(x)}</li>`).join('') : '<li><span class="ws-bl wide"></span></li><li><span class="ws-bl wide"></span></li>';
-    return `<div class="ws-pillar"><h4>Pillar ${i+1} · ${(p.pillar||'').trim() ? esc(p.pillar) : esc(PILLAR_DEFAULTS[i] || '')}</h4><ul>${lis}</ul></div>`;
-  }).join('');
-
-  const progTimeline = (() => {
-    const arr = (ex.progressiveTargets || []).filter(x => x && ((x.phase||'').trim() || (x.target||'').trim()));
-    const cards = arr.map(t => `<div class="ws-tl-card"><div class="ws-tl-phase">${wsVal(t.phase)}</div><div class="ws-tl-goal">${(t.target||'').trim() ? esc(t.target) : '<span class="ws-bl wide"></span>'}</div></div>`);
-    const blank = `<div class="ws-tl-card"><div class="ws-tl-phase"><span class="ws-bl"></span></div><div class="ws-tl-goal"><span class="ws-bl wide"></span></div></div>`;
-    while (cards.length < 4) cards.push(blank);
-    return cards.join('');
-  })();
-
-  const notToDo = (ex.whatNotToDo || []).filter(x => (x||'').toString().trim());
-  const notToDoHTML = (notToDo.length ? notToDo : ['', '', '']).map(x => `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(x)}</span></div>`).join('');
-
-  const exerciseHTML = `
+  /* ── Section 3: Next Consultation ── */
+  const nextDate = (data.next_consultation || '').trim();
+  const nextConsultHTML = `
     <div class="ws-section">
-      <div class="ws-sec-head"><span class="n">3</span><h3>Exercise Advice</h3><span class="meta">Current · ideal · adapted · progression</span></div>
+      <div class="ws-sec-head"><span class="n">3</span><h3>Next Consultation</h3></div>
       <div class="ws-sec-body">
-        <div class="ws-grid3">
-          <div class="ws-card tint"><div class="ws-card-title">Current activity</div><div class="ws-stack">
-            ${wsField('Activity level', ca.activityClass)}
-            ${wsField('Steps / day', ca.stepsPerDay)}
-            ${wsField('Structured ex.', ca.structuredEx)}
-            ${wsField('Occupation', ca.occupation)}
-            ${wsField('Barriers', ca.barriers)}
-            ${wsField('Contraindications', ca.contraindications)}
-            ${wsField('Foot exam done', ca.footExamDone)}
-          </div></div>
-          <div class="ws-card"><div class="ws-card-title">Ideal targets <span style="font-weight:500;text-transform:none;color:var(--muted);">(ADA 2024)</span></div><div class="ws-stack">
-            ${wsField('Aerobic', it.aerobic)}
-            ${wsField('Resistance', it.resistance)}
-            ${wsField('Flexibility', it.flexibility)}
-            ${wsField('Steps', it.steps)}
-            ${wsField('Sitting breaks', it.sittingBreaks)}
-          </div></div>
-          <div class="ws-card"><div class="ws-card-title orange">Adapted plan</div><div class="ws-stack">
-            ${wsField('Start with', ap.startWith)}
-            ${wsField('Resistance alt.', ap.resistanceAlt)}
-            ${wsField('Knee / joint care', ap.kneeJointCare)}
-            ${wsField('BG monitoring', ap.bgMonitoring)}
-            ${wsField('Foot check', ap.footCheck)}
-            ${wsField('Hydration', ap.hydration)}
-          </div></div>
-        </div>
-
-        <div class="ws-pillars">${pillarHTML}</div>
-
-        <div style="margin-top:13px;"><div class="ws-card-title" style="color:var(--p);">Progressive targets over time</div>
-          <div class="ws-timeline">${progTimeline}</div>
-        </div>
-
-        <div class="ws-grid2" style="margin-top:13px;">
-          <div class="ws-card"><div class="ws-card-title">Safety guidelines</div>${wsItemList(ex.safety, '', 3)}</div>
-          <div class="ws-card"><div class="ws-card-title orange">What NOT to do</div><div class="ws-checklist">${notToDoHTML}</div></div>
-        </div>
-      </div>
-    </div>`;
-
-  /* ── Section 4: Follow-up Plan ── */
-  const goalsReviewed = (fu.goalsReviewed || []).filter(g => g && ((g.goal||'').trim() || (g.value||'').trim()));
-  const goalsHTML = (goalsReviewed.length ? goalsReviewed : [{},{},{}]).map(g => wsCheckRow(g.goal, g.value, true)).join('');
-
-  const PS_LABELS = { concernsAddressed: 'Concerns addressed', confidence: 'Confidence in plan', barriersIdentified: 'Barriers identified', nextReviewBooked: 'Next review booked' };
-  const ps = fu.patientSatisfaction || {};
-  const psKeys = Object.keys(PS_LABELS).concat(Object.keys(ps).filter(k => !(k in PS_LABELS)));
-  const psHTML = psKeys.map(k => `<div class="row"><span class="lbl" style="min-width:120px;">${esc(PS_LABELS[k] || k)}</span><span class="gv" style="flex:1;text-align:left;color:var(--ink);font-weight:600;">${wsVal(ps[k])}</span></div>`).join('');
-
-  const checkCol = (arr, min) => {
-    const items = (arr || []).filter(x => (x||'').toString().trim());
-    const rows = (items.length ? items : new Array(min || 3).fill('')).map(x => `<div class="row"><span class="ws-check"></span><span class="lbl">${wsVal(x)}</span></div>`);
-    return `<div class="ws-checklist">${rows.join('')}</div>`;
-  };
-  const ac = fu.annualChecklist || {};
-
-  const followUpHTML = `
-    <div class="ws-section">
-      <div class="ws-sec-head"><span class="n">4</span><h3>Follow-up Plan</h3><span class="meta">Next visit · targets · review</span></div>
-      <div class="ws-sec-body">
-        <div class="ws-fu-grid">
-          <div class="ws-fu-card"><div class="t">Next visit</div><div class="v">${wsVal(fu.nextVisit)}</div></div>
-          <div class="ws-fu-card"><div class="t">Labs to repeat</div><div class="v">${wsVal(fu.labsToRepeat)}</div></div>
-          <div class="ws-fu-card"><div class="t">Clinical targets</div><div class="v">${wsVal(fu.clinicalTargets)}</div></div>
-          <div class="ws-fu-card"><div class="t">Patient check-in (DM Pro / WhatsApp)</div><div class="v">${wsVal(fu.patientCheckin)}</div></div>
-        </div>
-        <div class="ws-grid2">
-          <div class="ws-card"><div class="ws-card-title">Goals reviewed &amp; agreed</div><div class="ws-checklist">${goalsHTML}</div></div>
-          <div class="ws-card"><div class="ws-card-title orange">Patient satisfaction &amp; engagement</div><div class="ws-checklist">${psHTML}</div></div>
-        </div>
-        <div class="ws-card" style="margin-top:13px;"><div class="ws-card-title">Annual review checklist</div>
-          <div class="ws-grid3">
-            <div><div class="ws-flabel" style="margin-bottom:5px;">Bloods</div>${checkCol(ac.bloods, 4)}</div>
-            <div><div class="ws-flabel" style="margin-bottom:5px;">Examinations</div>${checkCol(ac.examinations, 4)}</div>
-            <div><div class="ws-flabel" style="margin-bottom:5px;">Education</div>${checkCol(ac.education, 4)}</div>
-          </div>
-        </div>
-        <div class="ws-sign">
-          <div class="line">Doctor's signature &amp; seal</div>
-          <div class="line">Patient signature</div>
+        <div class="rx-next-card">
+          <span class="rx-next-label">Review date</span>
+          <span class="rx-next-date">${nextDate ? esc(wsNiceDate(nextDate)) : '<span class="ws-bl" style="min-width:120px;"></span>'}</span>
         </div>
       </div>
     </div>`;
@@ -1439,9 +1155,12 @@ function renderOutput(targetId, data, patient) {
     <div class="ws-doc" id="${targetId}_ws">
       ${headHTML}
       ${prescriptionHTML}
-      ${dietHTML}
-      ${exerciseHTML}
-      ${followUpHTML}
+      ${suggestedLabsHTML}
+      ${nextConsultHTML}
+      <div class="ws-sign">
+        <div class="line">Doctor's signature &amp; seal</div>
+        <div class="line">Patient signature</div>
+      </div>
       <div class="ws-foot"><div><b>SugarCARE Clinics</b> · HomoRx Healthtech Pvt Ltd · 799 4884 799</div><div>Clinical decision support — prescriber judgement is final. Verify drug data before dispensing.</div></div>
     </div>
     <div class="ws-actions no-print">

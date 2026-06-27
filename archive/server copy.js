@@ -7,7 +7,8 @@ import cookieParser from 'cookie-parser';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillText = fs.readFileSync(path.join(__dirname, 'SKILL.md'), 'utf8');
+const skillText = fs.readFileSync(path.join(__dirname, 'SKILL2.md'), 'utf8');
+const formularyText = fs.readFileSync(path.join(__dirname, 'formulary.md'), 'utf8');
 
 const app = express();
 app.use(express.json({ limit: '2mb' }));
@@ -165,40 +166,99 @@ app.post('/api/analyse', async (req, res) => {
 
   const outputInstructions = `## OUTPUT FORMAT FOR THIS TOOL
 
-Use the SugarCARE Clinical Algorithm ONLY as internal reasoning to choose the gold-standard (ideal) prescription — apply the Kerala/TOFI layer, decision gates D1–D11, comorbidity modifiers and safety flags while deciding. Do NOT reproduce any of the algorithm's output templates, mode headers, comparative/formulary tables, GRADE tags, formulary status, out-of-formulary actions, or disclaimers. Return ONLY the JSON below.
+You are operating inside SugarCARE Consult — a structured clinical WORKSHEET generator. The patient summary is produced after a dietitian visit (DM Pro). Your job is to FILL Dr. Rakesh's fixed worksheet, not to write free-form prose. You are a template-filler: every value you emit lands in a pre-drawn field.
 
-You are operating inside SugarCARE Consult — a prescription generator for Dr. Rakesh's doctor app. The patient summary is produced after a dietitian visit (DM Pro). Respond ONLY in valid JSON. No markdown, no preamble, no text outside the JSON object.
+Apply the full Cardiometabolic Clinical Algorithm v4 internally (Territory → Psychosocial → Clinical Core), but EXPRESS the result only as the worksheet JSON below.
 
-## THE PRESCRIPTION (idealRx)
-"idealRx" = what ADA / RSSDI / ICMR guidelines + the SKILL decision protocol recommend for THIS patient — by molecule, with the correct dose and frequency. This is the evidence-based ideal prescription.
+Respond ONLY in valid JSON. No markdown, no preamble, no text outside the JSON object.
+
+## THE TWO-COLUMN PRESCRIPTION (the defining feature)
+The worksheet shows the prescription as TWO PARALLEL COLUMNS:
+- "idealRx" = what ADA / RSSDI / ICMR guidelines + the SKILL decision protocol recommend for THIS patient — by molecule or class, with NO formulary constraint. This is the evidence-based ideal.
+- "formularyRx" = the closest match actually available in the formulary above, with the exact brand name, plus a one-line "switchReason" explaining the substitution from the ideal.
+- "auditFlags" = the comparison BETWEEN the two columns, collapsed into the worksheet. This IS the audit — not a separate analysis. For each meaningful line, classify the relationship using "level":
+  * "match"              = same molecule available; formulary directly matches the ideal.
+  * "class-equivalent"   = a same-class molecule is substituted (e.g. one DPP-4i for another); efficacy maintained.
+  * "different-molecule" = a different molecule / efficacy profile is used because the ideal is unavailable — the "text" MUST document the clinical reason.
+  * "cost-availability"  = note about cost or stock availability influencing the choice.
+
+## FORMULARY RULES (apply to formularyRx)
+- Use the formulary above as the source of truth for brand, salt/strength, and price. Use EXACT brand names — no invention, no approximation.
+- When several brands share the same salt, pick the lowest-MRP option unless a clinical reason (tolerability, dose form, strength) justifies otherwise.
+- If the ideal molecule has NO acceptable formulary equivalent, still record it: put the ideal in idealRx, leave the formularyRx brand blank or name the nearest option, and raise a "different-molecule" or "cost-availability" auditFlag explaining the gap.
 
 ## SINGLE-AGENT / FDC SAFETY RULE
-- Never let a fixed-dose combination (FDC) pill double-count a drug already listed as a separate idealRx line. Example to avoid: metformin as its own line AND a glimepiride+metformin FDC — this pushes total metformin over ceiling.
-- When tapering or stopping a drug, prefer the single-agent form so the dose can be titrated independently.
-- Always sum the total daily dose of any shared ingredient across ALL idealRx lines (including the hidden component inside any FDC) and keep it within the algorithm's stated ceiling (e.g. metformin ≤2g/day). If an FDC would breach the ceiling, use single agents instead.
+- Never let a formulary fixed-dose combination (FDC) pill double-count a drug already prescribed separately. Example to avoid: Glyciphage SR (metformin) as its own line AND a glimepiride+metformin FDC — this pushes total metformin over ceiling.
+- When tapering or stopping a drug, prefer the SINGLE-AGENT formulary version so the dose can be titrated independently.
+- Always sum the total daily dose of any shared ingredient across ALL formularyRx lines (including the hidden component inside any FDC) and keep it within the skill's stated ceiling (e.g. metformin ≤2g/day). If an FDC would breach the ceiling, use single agents instead.
 
 ## FILLING RULES
-- Fill EVERY field you can justify from the summary and guidelines. If a value is genuinely unknown or not applicable, return an empty string "" (or [] for arrays). Do NOT invent vitals, lab values, or history that are not in the summary.
-- freq → DM Pro morning-noon-night pattern: "1-0-1", "0-1-0", "0-0-1", etc.
-- duration → e.g. "30 days".
-- instructions → SHORT dosing note only ("Before meal", "After meal", "At bedtime"), NOT clinical reasoning. Blank ("") if none.
-- suggested_labs → short labels only, e.g. "FBS (Fasting Blood Sugar)", "HbA1c", "Lipid Profile".
-- next_consultation → review date as YYYY-MM-DD.
-- Keep every field terse — form cells, not paragraphs.
+- Fill EVERY field you can justify from the summary and guidelines. If a value is genuinely unknown or not applicable, return an empty string "" (or [] for arrays) — the worksheet renders it as a blank line the doctor completes by hand. Do NOT invent vitals, lab values, or history that are not in the summary.
+- header.bmi: compute from weight/height if both are present, else "".
+- Diet "currentStatus" ratings (carbQuality, proteinAdequacy, dietaryFibre, healthyFats, mealRegularity, hydration): use ONE short rating word the worksheet can colour-grade — e.g. "Poor", "Low", "Adequate", "Good", "Irregular", "Regular".
+- plateMethod proportions are fixed by the Diabetes Plate Method (½ non-starchy veg, ¼ lean protein, ¼ quality carb); fill the descriptive text for each.
+- shortTermGoals phases must be drawn from: "Week 1-2", "Week 3-4", "Month 2", "Month 3+".
+- Keep every field terse — worksheet cells, not paragraphs.
 
 Return EXACTLY this JSON shape (all keys present; fill or leave blank):
 
 {
-  "header": { "patientName": "", "age": "", "sex": "", "diagnosis": "" },
-  "idealRx": [
-    { "drugGeneric": "", "dose": "", "freq": "", "duration": "", "instructions": "" }
-  ],
-  "suggested_labs": [],
-  "next_consultation": ""
+  "header": {
+    "patientName": "", "age": "", "sex": "", "weight": "", "height": "",
+    "bmi": "", "diagnosis": "", "visitType": "", "duration": ""
+  },
+  "prescription": {
+    "idealRx": [
+      { "drugGeneric": "", "dose": "", "freq": "", "duration": "", "rationale": "" }
+    ],
+    "formularyRx": [
+      { "drugGeneric": "", "brand": "", "dose": "", "freq": "", "switchReason": "" }
+    ],
+    "auditFlags": [
+      { "level": "match | class-equivalent | different-molecule | cost-availability", "text": "" }
+    ],
+    "doctorNotes": ""
+  },
+  "diet": {
+    "currentStatus": {
+      "carbQuality": "", "proteinAdequacy": "", "dietaryFibre": "", "healthyFats": "",
+      "mealRegularity": "", "hydration": "", "keyConcern": "", "currentCalories": "", "eatingPattern": ""
+    },
+    "whatsNeeded": {
+      "calorieTarget": "", "carbPercent": "", "fat": "", "fibre": "", "sodium": "",
+      "water": "", "mealFrequency": "", "prioritySwitch": "", "evidenceBase": ""
+    },
+    "plateMethod": { "nonStarchyVeg": "", "leanProtein": "", "qualityCarb": "", "whyItWorks": "" },
+    "includeEncourage": [ { "category": "", "detail": "" } ],
+    "restrictAvoid": [ { "category": "", "detail": "" } ],
+    "mealTiming": [ { "meal": "", "guidance": "" } ],
+    "shortTermGoals": [ { "phase": "Week 1-2 | Week 3-4 | Month 2 | Month 3+", "goal": "" } ]
+  },
+  "exercise": {
+    "currentActivity": {
+      "activityClass": "", "stepsPerDay": "", "structuredEx": "", "occupation": "",
+      "barriers": "", "contraindications": "", "footExamDone": ""
+    },
+    "idealTargets": { "aerobic": "", "resistance": "", "flexibility": "", "steps": "", "sittingBreaks": "" },
+    "adaptedPlan": {
+      "startWith": "", "resistanceAlt": "", "kneeJointCare": "", "bgMonitoring": "", "footCheck": "", "hydration": ""
+    },
+    "pillars": [ { "pillar": "", "points": [] } ],
+    "progressiveTargets": [ { "phase": "", "target": "" } ],
+    "safety": [ { "item": "", "detail": "" } ],
+    "whatNotToDo": [ "" ]
+  },
+  "followUp": {
+    "nextVisit": "", "labsToRepeat": "", "clinicalTargets": "", "patientCheckin": "",
+    "goalsReviewed": [ { "goal": "", "value": "" } ],
+    "annualChecklist": { "bloods": [], "examinations": [], "education": [] },
+    "patientSatisfaction": { "concernsAddressed": "", "confidence": "", "barriersIdentified": "", "nextReviewBooked": "" }
+  }
 }`;
 
   const system = [
-    { type: 'text', text: skillText, cache_control: { type: 'ephemeral', ttl: '1h' } },
+    { type: 'text', text: skillText },
+    { type: 'text', text: formularyText, cache_control: { type: 'ephemeral', ttl: '1h' } },
     { type: 'text', text: outputInstructions }
   ];
 
@@ -209,7 +269,7 @@ Return EXACTLY this JSON shape (all keys present; fill or leave blank):
 DM Pro patient summary / consultation notes:
 ${transcript}
 
-Fill the SugarCARE prescription for this patient: the ideal prescription (idealRx), suggested labs, and next consultation date. Respond in valid JSON only — exactly the schema specified.`;
+Fill the complete SugarCARE worksheet for this patient: both prescription columns (idealRx and formularyRx) with the auditFlags comparison between them, plus the diet, exercise, and follow-up sections. Respond in valid JSON only — exactly the worksheet shape specified.`;
 
   try {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
