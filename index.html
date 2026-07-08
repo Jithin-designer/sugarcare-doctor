@@ -310,9 +310,25 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 /* Frequency badge (DM Pro morning-noon-night pattern) */
 .rx-freq-badge{display:inline-block;background:#2E7D32;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.03em;white-space:nowrap;}
 
-/* Suggested labs card */
-.rx-labs-card{background:rgba(74,47,160,0.07);border-radius:8px;padding:10px 14px;}
-.rx-labs-list{list-style:disc;padding-left:18px;font-size:11.5px;line-height:1.85;color:var(--ink);}
+/* Suggested labs — two-bucket panels */
+.ws-doc .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:600px){.ws-doc .cols{grid-template-columns:1fr;}}
+.ws-doc .panel{border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.ws-doc .panel-head{padding:8px 12px;font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px;}
+.ws-doc .panel-onfile .panel-head{background:rgba(34,139,84,.10);color:#1d7a4a;}
+.ws-doc .panel-rec .panel-head{background:var(--p-tint);color:var(--p);}
+.ws-doc .panel table{width:100%;border-collapse:collapse;margin:0;}
+.ws-doc .panel thead th{background:transparent;color:var(--muted);border-bottom:1px solid var(--line);font-size:10px;text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:6px 12px;}
+.ws-doc .panel tbody td{padding:6px 12px;font-size:12px;border-bottom:1px solid var(--line);}
+.ws-doc .panel tbody tr:last-child td{border-bottom:none;}
+.ws-doc .panel tbody tr:nth-child(even){background:#fff;}
+.ws-doc .panel-onfile tbody tr:nth-child(even){background:var(--fill);}
+.ws-doc .panel-rec tbody tr:nth-child(even){background:var(--fill);}
+.ws-doc .labs-allcurrent{background:var(--fill);border-radius:8px;padding:10px 14px;font-size:11.5px;color:var(--ink);}
+.ws-doc .tag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;}
+.ws-doc .tag-missing{background:var(--p-tint);color:var(--p);}
+.ws-doc .tag-overdue{background:var(--o-tint);color:var(--o);}
+.ws-doc .tag-disc{background:#ECECF2;color:var(--muted);}
 
 /* Next consultation card */
 .rx-next-card{background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.20);border-radius:8px;padding:11px 16px;display:flex;align-items:center;gap:12px;}
@@ -1146,16 +1162,47 @@ function renderOutput(targetId, data, patient) {
       </div>
     </div>`;
 
-  /* ── Section 2: Suggested Labs ── */
-  const labs = (data.suggested_labs || []).filter(x => (x||'').toString().trim());
-  const labItems = labs.length
-    ? labs.map(l => `<li>${esc(l)}</li>`).join('')
-    : `<li><span class="ws-bl" style="min-width:160px;"></span></li>`;
+  /* ── Section 2: Suggested Labs (two-bucket: on file vs recommended) ── */
+  const labsOnFile = (data.labsOnFile || []).filter(Boolean);
+  const labsRecommended = (data.labsRecommended || []).filter(Boolean);
+
+  const reasonTag = (l) => {
+    if (l.reason === 'overdue') {
+      const days = (l.daysPast != null && l.daysPast !== '') ? ` ${esc(l.daysPast)} days past` : '';
+      return `<span class="tag tag-overdue">Overdue</span>${days}`;
+    }
+    if (l.reason === 'discretion') return `<span class="tag tag-disc">Discretion</span>`;
+    return `<span class="tag tag-missing">Not on file</span>`;
+  };
+
+  const onFilePanel = labsOnFile.length ? `
+    <div class="panel panel-onfile">
+      <div class="panel-head">✓ On file — recent</div>
+      <table>
+        <thead><tr><th>Test</th><th>Result</th><th>Date</th></tr></thead>
+        <tbody>${labsOnFile.map(l => `<tr><td>${wsVal(l.test)}</td><td>${wsVal(l.value)}</td><td>${l.date ? esc(wsNiceDate(l.date)) : wsVal('')}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>` : '';
+
+  const recPanel = labsRecommended.length ? `
+    <div class="panel panel-rec">
+      <div class="panel-head">💬 Recommended now</div>
+      <table>
+        <thead><tr><th>Test</th><th>Why</th></tr></thead>
+        <tbody>${labsRecommended.map(l => `<tr><td>${wsVal(l.test)}</td><td>${reasonTag(l)}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>` : `
+    <div class="panel panel-rec">
+      <div class="panel-head">💬 Recommended now</div>
+      <div class="labs-allcurrent" style="border-radius:0;">All standard investigations are current.</div>
+    </div>`;
+
+  const colsStyle = labsOnFile.length ? '' : ' style="grid-template-columns:1fr;"';
   const suggestedLabsHTML = `
     <div class="ws-section">
-      <div class="ws-sec-head"><span class="n">2</span><h3>Suggested Lab Tests</h3></div>
+      <div class="ws-sec-head"><span class="n">2</span><h3>Suggested Investigations</h3></div>
       <div class="ws-sec-body">
-        <div class="rx-labs-card"><ul class="rx-labs-list">${labItems}</ul></div>
+        <div class="cols"${colsStyle}>${onFilePanel}${recPanel}</div>
       </div>
     </div>`;
 

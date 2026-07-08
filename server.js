@@ -182,9 +182,34 @@ You are operating inside SugarCARE Consult — a prescription generator for Dr. 
 - freq → DM Pro morning-noon-night pattern: "1-0-1", "0-1-0", "0-0-1", etc.
 - duration → e.g. "30 days".
 - instructions → SHORT dosing note only ("Before meal", "After meal", "At bedtime"), NOT clinical reasoning. Blank ("") if none.
-- suggested_labs → short labels only, e.g. "FBS (Fasting Blood Sugar)", "HbA1c", "Lipid Profile".
 - next_consultation → review date as YYYY-MM-DD.
 - Keep every field terse — form cells, not paragraphs.
+
+## SUGGESTED INVESTIGATIONS — DEDUP RULE
+
+Split investigations into two fields:
+
+labsOnFile — tests present in the summary AND within their validity window (measured against the "today" date in the summary, or the consultation date if no explicit today is given).
+  Include: test name, most recent value, date (YYYY-MM-DD).
+
+labsRecommended — tests that are absent from the summary OR older than their validity window.
+  Include: test name, reason ("not_on_file" | "overdue" | "discretion").
+  If overdue, also include daysPast (integer — how many days past the validity window).
+
+If labsRecommended is empty, return an empty array [].
+
+Validity windows:
+- HbA1c: 90 days
+- FBS / PPBS: 28 days
+- Lipid profile: 180 days
+- Creatinine / eGFR: 180 days
+- Urine ACR: 180 days
+- LFT: 180 days
+- Electrolytes: 180 days
+- TSH: 365 days
+- Fundus / retinopathy: 365 days
+- Foot examination: 365 days
+- ECG: always reason "discretion" — never auto-suggest as overdue or not_on_file
 
 Return EXACTLY this JSON shape (all keys present; fill or leave blank):
 
@@ -193,7 +218,12 @@ Return EXACTLY this JSON shape (all keys present; fill or leave blank):
   "idealRx": [
     { "drugGeneric": "", "dose": "", "freq": "", "duration": "", "instructions": "" }
   ],
-  "suggested_labs": [],
+  "labsOnFile": [
+    { "test": "", "value": "", "date": "" }
+  ],
+  "labsRecommended": [
+    { "test": "", "reason": "", "daysPast": null }
+  ],
   "next_consultation": ""
 }`;
 
