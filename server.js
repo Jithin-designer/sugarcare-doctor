@@ -1,5 +1,4 @@
 import express from 'express';
-import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
 import fs from 'fs';
@@ -99,29 +98,26 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
-// Audio uploads held in memory, then re-sent to Groq. 25MB matches Groq's file limit.
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
-
 /* ============ POST /api/transcribe — Groq Whisper proxy ============ */
-app.post('/api/transcribe', upload.single('file'), async (req, res) => {
+// Body is streamed raw (no multer/body-parser) and forwarded to Groq as-is —
+// Groq parses the multipart fields (file/model/language) itself.
+app.post('/api/transcribe', async (req, res) => {
   const groqKey = process.env.GROQ_API_KEY;
   if (!groqKey) return res.status(500).json({ error: 'Server is missing GROQ_API_KEY configuration' });
-  if (!req.file) return res.status(400).json({ error: 'Missing audio file' });
 
   try {
-    const form = new FormData();
-    form.append(
-      'file',
-      new Blob([req.file.buffer], { type: req.file.mimetype || 'application/octet-stream' }),
-      req.file.originalname || 'audio.webm'
-    );
-    form.append('model', req.body.model || 'whisper-large-v3');
-    form.append('language', req.body.language || 'en');
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    const buffer = Buffer.concat(chunks);
+    if (!buffer.length) return res.status(400).json({ error: 'Missing audio file' });
 
     const groqRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${groqKey}` },
-      body: form
+      headers: {
+        'Authorization': `Bearer ${groqKey}`,
+        'Content-Type': req.headers['content-type']
+      },
+      body: buffer
     });
 
     if (!groqRes.ok) {
@@ -316,11 +312,15 @@ Fill the SugarCARE prescription for this patient: the ideal prescription (idealR
   }
 });
 
-// JSON error handler (e.g. multer file-too-large) so clients always get JSON, not HTML.
+// JSON error handler so clients always get JSON, not HTML.
 app.use((err, req, res, next) => {
   console.error('[server] error:', err.message);
   res.status(400).json({ error: err.message });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`SugarCARE server listening on :${PORT}`));
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`SugarCARE server listening on :${PORT}`));
+}
+
+export default app;
