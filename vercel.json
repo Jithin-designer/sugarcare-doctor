@@ -1,10 +1,10 @@
 {
   "functions": {
-    "server.js": {
-      "includeFiles": "SKILL.md"
+    "api/server.js": {
+      "includeFiles": "SKILL.md,index.html"
     }
   },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/server.js" }
+    { "source": "/(.*)", "destination": "/api/server" }
   ]
 }

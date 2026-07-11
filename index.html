@@ -350,9 +350,10 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
   .ws-doc{padding:18px 14px;}
 }
 
-/* Audio capture disabled — paste-only input. Hides the mic/record, file-upload,
-   recording-state and transcribe UI; keeps the paste textarea + Analyse button.
-   !important so it stays hidden even if legacy JS toggles inline display. */
+/* Paste-only production mode. Hides alternate modes, audio capture, upload,
+   recording-state and transcription UI; keeps the patient-summary textarea
+   plus the Analyse button. */
+.main-tabs,
 #micError,
 #audioInput .audio-divider,
 #audioIdle,#audioRecording,#audioRecorded,#audioFileReady,
@@ -382,14 +383,14 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 
 <div class="container">
 
-<!-- Main tabs -->
+<!-- Main tabs hidden in paste-only production mode -->
 <div class="main-tabs no-print">
-  <button class="main-tab active" onclick="switchMain(0)">Audio Consult</button>
+  <button class="main-tab active" onclick="switchMain(0)">Patient Summary</button>
   <button class="main-tab" onclick="switchMain(1)">Manual Entry</button>
   <button class="main-tab" onclick="switchMain(2)">Prescription Only</button>
 </div>
 
-<!-- ===== TAB 0: Audio Consult ===== -->
+<!-- ===== TAB 0: Patient Summary ===== -->
 <div class="tab-panel active" id="mainTab0">
 
   <div class="section">
@@ -399,7 +400,7 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
       <!-- Paste option (first) -->
       <div id="pasteArea">
         <textarea id="pasteText" class="paste-textarea" rows="5"
-          placeholder="Paste DM Pro patient summary or any consultation notes here..."
+          placeholder="Paste DM Pro patient summary here..."
           oninput="handlePasteInput()"></textarea>
         <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
           <button class="btn btn-purple" id="pasteSubmitBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.5rem 1.4rem;font-size:0.88rem;">Analyse →</button>
@@ -461,12 +462,12 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
   </div>
 
   <div class="generate-bar" style="text-align:center;margin-bottom:1rem;">
-    <button class="btn btn-orange" id="transcribeBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.75rem 2rem;font-size:0.95rem;">Transcribe &amp; Analyse</button>
+    <button class="btn btn-orange" id="transcribeBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.75rem 2rem;font-size:0.95rem;">Analyse</button>
   </div>
 
   <!-- Progress -->
   <div class="progress-bar" id="progressBar">
-    <div class="progress-step" id="step1"><div class="dot">1</div><span>Uploading &amp; transcribing audio…</span></div>
+    <div class="progress-step" id="step1"><div class="dot">1</div><span>Patient summary received…</span></div>
     <div class="pct-bar" id="uploadBar"><div class="pct-bar-track"><div class="pct-bar-fill" id="uploadFill"></div></div><span class="pct-bar-label" id="uploadLabel">Uploading audio… 0%</span></div>
     <div class="progress-step" id="step2"><div class="dot">2</div><span>Analysing with SugarCARE clinical skill…</span></div>
     <div class="pct-bar" id="analyseBar"><div class="pct-bar-track"><div class="pct-bar-fill" id="analyseFill"></div></div><span class="pct-bar-label" id="analyseLabel">Analysing… 0%</span></div>
@@ -1081,13 +1082,19 @@ function wsRows(arr, cellFns, minRows) {
 function renderTokenBar(u) {
   if (!u) return '';
   const fmt = n => n.toLocaleString();
-  const total = u.input_tokens + u.output_tokens;
-  const cachePct = u.input_tokens > 0 ? Math.round(u.cache_read / u.input_tokens * 100) : 0;
-  const cost = (u.input_tokens * 3 + u.cache_read * 0.3 + u.cache_create * 3.75 + u.output_tokens * 15) / 1e6;
+  const freshInput = u.input_tokens || 0;
+  const cachedInput = u.cache_read || 0;
+  const cacheWrite = u.cache_create || 0;
+  const output = u.output_tokens || 0;
+  const totalInput = freshInput + cachedInput + cacheWrite;
+  const total = totalInput + output;
+  const cachePct = totalInput > 0 ? Math.round(cachedInput / totalInput * 100) : 0;
+  const cost = (freshInput * 3 + cachedInput * 0.3 + cacheWrite * 6 + output * 15) / 1e6;
   const cacheHit = cachePct > 0 ? ` <span class="token-bar-label">(${cachePct}% cached)</span>` : '';
   return `<div class="token-bar no-print">
-    <span class="token-bar-item"><span class="token-bar-label">in</span><span class="token-bar-value">${fmt(u.input_tokens)}</span>${cacheHit}</span>
-    <span class="token-bar-item"><span class="token-bar-label">out</span><span class="token-bar-value">${fmt(u.output_tokens)}</span></span>
+    <span class="token-bar-item"><span class="token-bar-label">fresh</span><span class="token-bar-value">${fmt(freshInput)}</span>${cacheHit}</span>
+    <span class="token-bar-item"><span class="token-bar-label">cached</span><span class="token-bar-value">${fmt(cachedInput)}</span></span>
+    <span class="token-bar-item"><span class="token-bar-label">out</span><span class="token-bar-value">${fmt(output)}</span></span>
     <span class="token-bar-item"><span class="token-bar-label">total</span><span class="token-bar-value">${fmt(total)}</span></span>
     <span class="token-bar-cost">≈ $${cost.toFixed(4)}</span>
   </div>`;
