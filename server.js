@@ -98,6 +98,10 @@ app.use((req, res, next) => {
 
 app.use(express.static(__dirname));
 
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 /* ============ POST /api/transcribe — Groq Whisper proxy ============ */
 // Body is streamed raw (no multer/body-parser) and forwarded to Groq as-is —
 // Groq parses the multipart fields (file/model/language) itself.
