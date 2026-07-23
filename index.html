@@ -1245,7 +1245,7 @@ function renderOutput(targetId, data, patient) {
     </div>
     <div class="ws-actions no-print">
       <button class="btn btn-purple" onclick="printWorksheet('${targetId}')" style="padding:0.7rem 2rem;">🖨 Print / Save as PDF</button>
-      <button class="btn btn-purple-outline no-print" id="${targetId}_pdfBtn" onclick="downloadWorksheetPDF('${targetId}', ${JSON.stringify(hName)})" style="padding:0.7rem 2rem;">⬇ Download PDF</button>
+      <button class="btn btn-purple-outline no-print" id="${targetId}_pdfBtn" data-patient-name="${esc(hName)}" onclick="downloadWorksheetPDF('${targetId}', this.dataset.patientName)" style="padding:0.7rem 2rem;">⬇ Download PDF</button>
       <button class="btn btn-ghost" disabled title="Coming soon — DM Pro integration pending">Save to DM Pro</button>
     </div>`;
 
