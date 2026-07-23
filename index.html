@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="color-scheme" content="light only">
 <title>SugarCARE Consult</title>
@@ -84,6 +86,7 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .btn-purple{background:var(--purple);color:#fff;}
 .btn-orange{background:var(--orange);color:#fff;}
 .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-sec);}
+.btn-purple-outline{background:transparent;border:1px solid var(--purple);color:var(--purple);}
 .btn-red{background:var(--red);color:#fff;}
 .btn-sm{padding:0.4rem 0.75rem;font-size:0.8rem;min-height:36px;}
 .btn-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;}
@@ -1242,6 +1245,7 @@ function renderOutput(targetId, data, patient) {
     </div>
     <div class="ws-actions no-print">
       <button class="btn btn-purple" onclick="printWorksheet('${targetId}')" style="padding:0.7rem 2rem;">🖨 Print / Save as PDF</button>
+      <button class="btn btn-purple-outline no-print" id="${targetId}_pdfBtn" onclick="downloadWorksheetPDF('${targetId}', ${JSON.stringify(hName)})" style="padding:0.7rem 2rem;">⬇ Download PDF</button>
       <button class="btn btn-ghost" disabled title="Coming soon — DM Pro integration pending">Save to DM Pro</button>
     </div>`;
 
@@ -1255,6 +1259,47 @@ function printWorksheet(targetId) {
   if (panel) panel.classList.add('print-active');
   window.print();
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('print-active'));
+}
+
+async function downloadWorksheetPDF(targetId, patientName) {
+  const btn = document.getElementById(`${targetId}_pdfBtn`);
+  const docEl = document.getElementById(`${targetId}_ws`);
+  if (!docEl) return;
+
+  const originalText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF...'; }
+
+  try {
+    const canvas = await html2canvas(docEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/png');
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    const namePart = (patientName || 'Patient').trim().replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'Patient';
+    const datePart = new Date().toISOString().split('T')[0];
+    pdf.save(`SugarCARE-Prescription-${namePart}-${datePart}.pdf`);
+  } catch (e) {
+    console.error('[downloadWorksheetPDF] failed:', e);
+    alert('Could not generate PDF: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = originalText; }
+  }
 }
 
 /* ============ PRESCRIPTION-ONLY TAB ============ */
