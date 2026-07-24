@@ -353,6 +353,25 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
   .ws-doc{padding:18px 14px;}
 }
 
+/* ── Prescription Audit (opt-in "With Audit" toggle) ──
+   The toggle lives in the form (screen-only, .no-print). The .audit-section is
+   injected INSIDE .ws-doc after Next Consultation, so it prints with the sheet
+   and inherits the worksheet palette vars (--p, --o, --line, --ink, etc.). */
+.audit-toggle{display:flex;align-items:center;justify-content:flex-end;gap:0.4rem;margin:0.5rem 0 0;font-size:0.8rem;font-weight:600;color:var(--text-sec);cursor:pointer;user-select:none;}
+.audit-toggle input{width:15px;height:15px;accent-color:var(--purple);cursor:pointer;}
+.audit-section{margin-top:20px;break-inside:avoid;}
+.audit-section h3{font-family:'Bricolage Grotesque',sans-serif;font-weight:800;font-size:14px;letter-spacing:-.2px;color:var(--p);margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--o);}
+.audit-note{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:9px;line-height:1.5;}
+.audit-table{width:100%;border-collapse:collapse;font-size:10.5px;}
+.audit-table th{background:var(--p-tint);color:var(--p);text-align:left;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;padding:5px 7px;border:1px solid var(--line);}
+.audit-table td{padding:5px 7px;border:1px solid var(--line);vertical-align:top;line-height:1.4;}
+.audit-table .drug{font-weight:700;color:var(--ink);}
+.variance-badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:9px;font-weight:700;letter-spacing:.02em;white-space:nowrap;}
+.variance-ok{background:rgba(46,125,50,0.10);color:var(--green);}
+.variance-missing{background:var(--p-tint);color:var(--p);}
+.variance-review{background:rgba(198,40,40,0.10);color:var(--red);}
+.variance-dose{background:var(--o-tint);color:var(--o);}
+
 /* Paste-only production mode. Hides alternate modes, audio capture, upload,
    recording-state and transcription UI; keeps the patient-summary textarea
    plus the Analyse button. */
@@ -405,6 +424,9 @@ body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
         <textarea id="pasteText" class="paste-textarea" rows="5"
           placeholder="Paste DM Pro patient summary here..."
           oninput="handlePasteInput()"></textarea>
+        <label class="audit-toggle no-print">
+          <input type="checkbox" id="withAudit"> With Audit
+        </label>
         <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
           <button class="btn btn-purple" id="pasteSubmitBtn" onclick="transcribeAndAnalyse()" disabled style="padding:0.5rem 1.4rem;font-size:0.88rem;">Analyse →</button>
         </div>
@@ -1103,6 +1125,161 @@ function renderTokenBar(u) {
   </div>`;
 }
 
+/* ============ PRESCRIPTION AUDIT (opt-in "With Audit") ============
+   ASSUMPTIONS (spec was silent on these — decisions documented here):
+   1. SOURCE OF CURRENT MEDS. The only dedicated current-meds field in the HTML
+      is #m_meds (Manual Entry). The production paste flow has no such field —
+      meds are embedded in the pasted DM Pro summary (#pasteText). So we read
+      #m_meds if it has content, else fall back to extracting from #pasteText.
+   2. IDEAL SIDE needs no parsing — data.idealRx is already structured JSON
+      ({drugGeneric, dose, freq, ...}) from /api/analyse.
+   3. MATCHING is generic-name based: names are lower-cased, form/route/salt/
+      dose tokens stripped, and fixed-dose combinations split on + / & so each
+      component is matched independently. This is a heuristic aid, not a
+      substitute for prescriber judgement.
+   4. The audit is injected INSIDE .ws-doc (after Next Consultation) only when
+      #withAudit is checked; when unchecked the rendered output is byte-identical
+      to today's. */
+
+// Current-meds text: prefer the structured Manual-Entry field, else the pasted summary.
+function getCurrentMedsText() {
+  const manual = (document.getElementById('m_meds')?.value || '').trim();
+  if (manual) return manual;
+  return (document.getElementById('pasteText')?.value || '').trim();
+}
+
+// Pull candidate medication lines out of free text (or the one-per-line manual field).
+function extractCurrentMeds(text) {
+  if (!text) return [];
+  const lines = text.split(/\r?\n/).map(l => l.trim());
+  const headerRe = /(current|present|ongoing|existing|home)?\s*(medication|medicine|drug|treatment|rx|prescription)s?\b/i;
+  const stopRe = /^(labs?|investigation|history|complaint|exam|diagnos|plan|vitals?|allerg|lifestyle|diet|advice|follow|next|assessment|summary|impression)/i;
+  let medLines = [];
+  const idx = lines.findIndex(l => l && l.length < 60 && headerRe.test(l));
+  if (idx !== -1) {
+    const inline = lines[idx].split(':').slice(1).join(':').trim(); // meds on the header line itself
+    if (inline) medLines.push(...inline.split(/[;,]|\band\b/i));
+    for (let i = idx + 1; i < lines.length; i++) {
+      const l = lines[i];
+      if (l === '') { if (medLines.length) break; else continue; }
+      if (stopRe.test(l)) break;
+      medLines.push(l);
+    }
+  }
+  // Fallback: no meds section found → treat any line carrying a dose token as a med.
+  if (!medLines.length) {
+    medLines = lines.filter(l => /\b\d+(\.\d+)?\s*(mg|mcg|µg|g|ml|iu|units?|u)\b/i.test(l));
+  }
+  const entries = [];
+  medLines.forEach(l => {
+    const raw = l.replace(/^[\s*•\-–—\d.\)]+/, '').trim(); // strip bullets / list numbering
+    if (raw) entries.push(parseMedEntry(raw));
+  });
+  return entries.filter(e => e.name);
+}
+
+// Split one entry into a display name + dose/frequency remainder.
+function parseMedEntry(raw) {
+  let s = raw.replace(/^(tab|tablet|cap|capsule|inj|injection|syp|syrup|susp)\.?\s+/i, '').trim();
+  const doseIdx = s.search(/\d/);
+  let name, dose;
+  if (doseIdx > 0) { name = s.slice(0, doseIdx).trim(); dose = s.slice(doseIdx).trim(); }
+  else { name = s; dose = ''; }
+  name = name.replace(/[,:•\-–—]+$/, '').trim();
+  return { name, dose, raw };
+}
+
+// Reduce a drug name to comparable generic key(s). FDCs → one key per component.
+function normDrug(name) {
+  if (!name) return [];
+  let s = name.toLowerCase();
+  s = s.replace(/\([^)]*\)/g, ' ');
+  s = s.replace(/\b(tab|tablet|cap|capsule|inj|injection|syp|syrup|susp|sr|xr|er|cr|od|bd|tds|qds|hs|sos|po|oral)\b/g, ' ');
+  s = s.replace(/\b(hydrochloride|hcl|sodium|potassium|calcium|maleate|succinate|fumarate|mesylate|besylate|tartrate|sulfate|sulphate|dihydrate|monohydrate)\b/g, ' ');
+  s = s.replace(/[^a-z+/&\s-]/g, ' '); // drop digits, units, punctuation
+  return [...new Set(
+    s.split(/[+/&]|\band\b/).map(x => x.trim().split(/\s+/)[0]).filter(x => x && x.length > 2)
+  )];
+}
+
+// Two meds match if they share any generic key (prefix-tolerant for minor variants).
+function medsMatch(a, b) {
+  const ka = normDrug(a), kb = normDrug(b);
+  return ka.some(x => kb.some(y => x === y || x.startsWith(y) || y.startsWith(x)));
+}
+
+// Same molecule but different strength? Compare the numbers in each dose string.
+function doseChanged(currentStr, idealDose) {
+  const nums = s => (String(s).match(/\d+(\.\d+)?/g) || []);
+  const want = nums(idealDose);
+  if (!want.length || !currentStr) return false; // unknown → don't flag a change
+  const have = nums(currentStr);
+  return !want.every(d => have.includes(d));
+}
+
+// Build one row per drug found in either list, classified by variance.
+function buildAuditRows(currentMeds, idealRx) {
+  const ideal = (idealRx || []).filter(Boolean)
+    .map(m => ({ name: (m.drugGeneric || '').trim(), dose: (m.dose || '').trim(), freq: (m.freq || '').trim() }))
+    .filter(m => m.name);
+  const current = (currentMeds || []).filter(c => c.name);
+  const rows = [];
+  const usedIdeal = new Array(ideal.length).fill(false);
+
+  current.forEach(c => {
+    const j = ideal.findIndex((m, k) => !usedIdeal[k] && medsMatch(c.name, m.name));
+    const curLabel = (c.dose ? (c.name + ' ' + c.dose) : c.name).trim();
+    if (j !== -1) {
+      usedIdeal[j] = true;
+      const im = ideal[j];
+      const changed = doseChanged(c.dose, im.dose);
+      rows.push({
+        med: im.name, current: curLabel,
+        ideal: [im.name, im.dose, im.freq].filter(Boolean).join(' '),
+        variance: changed ? 'Dose Change' : 'Continuing',
+        cls: changed ? 'variance-dose' : 'variance-ok'
+      });
+    } else {
+      rows.push({ med: c.name, current: curLabel, ideal: '—', variance: 'Not Recommended / Review', cls: 'variance-review' });
+    }
+  });
+  ideal.forEach((m, k) => {
+    if (!usedIdeal[k]) rows.push({
+      med: m.name, current: '—',
+      ideal: [m.name, m.dose, m.freq].filter(Boolean).join(' '),
+      variance: 'Missing / Consider Adding', cls: 'variance-missing'
+    });
+  });
+  return rows;
+}
+
+// Full audit section HTML (empty string if there is nothing to compare).
+function renderAuditSection(currentMeds, idealRx) {
+  const rows = buildAuditRows(currentMeds, idealRx);
+  if (!rows.length) return '';
+  const note = (currentMeds && currentMeds.length)
+    ? ''
+    : '<div class="audit-note">No current medications were detected in the input — every ideal-Rx line is shown as a new recommendation. Verify against the patient’s actual medication list.</div>';
+  const body = rows.map(r => `
+      <tr>
+        <td class="drug">${esc(r.med)}</td>
+        <td>${esc(r.current)}</td>
+        <td>${esc(r.ideal)}</td>
+        <td><span class="variance-badge ${r.cls}">${esc(r.variance)}</span></td>
+      </tr>`).join('');
+  return `
+    <div class="audit-section">
+      <h3>Prescription Audit</h3>
+      ${note}
+      <table class="audit-table">
+        <thead>
+          <tr><th>Medication</th><th>Current</th><th>Ideal Rx</th><th>Variance</th></tr>
+        </thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
+}
+
 function renderOutput(targetId, data, patient) {
   const el = document.getElementById(targetId);
   const p  = patient || {};
@@ -1229,6 +1406,13 @@ function renderOutput(targetId, data, patient) {
       </div>
     </div>`;
 
+  /* ── Optional: Prescription Audit (only when "With Audit" is ticked) ──
+     When unchecked, auditHTML is '' and the output is unchanged from today. */
+  const withAudit = !!document.getElementById('withAudit')?.checked;
+  const auditHTML = withAudit
+    ? renderAuditSection(extractCurrentMeds(getCurrentMedsText()), idealRx)
+    : '';
+
   el.innerHTML = `
     ${renderTokenBar(data._usage)}
     ${metaBanner}
@@ -1237,6 +1421,7 @@ function renderOutput(targetId, data, patient) {
       ${prescriptionHTML}
       ${suggestedLabsHTML}
       ${nextConsultHTML}
+      ${auditHTML}
       <div class="ws-sign">
         <div class="line">Doctor's signature &amp; seal</div>
         <div class="line">Patient signature</div>
