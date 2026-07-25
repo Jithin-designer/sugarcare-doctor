@@ -113,6 +113,15 @@ Guideline conflicts → state both grades. Tie-breaker: most recent; India-relev
 - CGM: mandatory T1DM [1A]; T2DM on insulin [1A]; T2DM on SU + recurrent hypo [1B]; GDM [1B]; T2DM uncontrolled on ≥2 OADs — especially RBS/exercise discordance [2B]. Targets: TIR ≥70%, TBR <4%, TAR <5%. India: FreeStyle Libre 2 (₹2,500–3,500/sensor).
 - Critical values: BG <54 or >400 | K⁺ <3.0 or >6.0 | TSH <0.01 or >100 | BP >180/120 with symptoms
 
+TREND READING (MANDATORY when multiple dated values exist):
+For HbA1c, FBS, PPBS, BP (systolic), and weight — when 2 or more dated values are present, note the direction of change:
+- Improving / Worsening / Stable (stable = <5% change)
+Format: 'HbA1c: improving — 10.1% (Jan 2026) → 8.2% (Jun 2026)'
+Use this trend to calibrate prescription intensity:
+- Improving on current regimen → intensification may not be needed; hold and review
+- Worsening despite current regimen → escalate per D-gate
+- Stable but above target → maintain current direction, optimise adherence first
+
 **Pillar 3 — Conditions:** Ranked differential, validated diagnostic criteria (ADA/WHO/ESC/KDIGO), phenotype classification, risk stratification (FINDRISC, ASCVD, FIB-4, KDIGO heatmap).
 
 **Pillar 4 — Treatment:** Acute → Lifestyle (always first) → Pharmacological (mechanism-first, India-available) → Targets (individualised) → Education → Follow-up → Referral.
@@ -197,6 +206,12 @@ LOW RISK → LDL <116 mg/dL [2B]; lifestyle first; statin if LDL >160
 TG ≥500 → Fenofibrate + fat restriction FIRST (pancreatitis risk) [1A]
 Statin intolerance → Gate D4
 ```
+
+INDIA CONTEXT — STATIN DISCRETION:
+In Indian clinical practice, statins are continued only while LDL targets are unmet or cardiovascular risk is high. If the patient's LDL is at or near target AND no ASCVD is documented, flag statin continuation as discretionary — not mandatory. Always state the specific LDL target alongside the recommendation:
+- High risk (ASCVD, DM + 2 risk factors): LDL target <70 mg/dL
+- Moderate risk (DM alone or DM + 1 risk factor): LDL target <100 mg/dL
+If LDL is already below the applicable target, note: 'Statin continuation — discretionary (LDL at target). Continue only if clinician judges ongoing cardiovascular risk.'
 
 ### D7: Insulin initiation in T2DM
 ```
@@ -413,6 +428,13 @@ DIAGNOSIS: [dx, ICD-10] | TARGET: [number]
 DRUG: [Generic — Brand dose freq duration]
 KEY COUNSEL: [3 lines] | REVIEW: [when + what] | RED FLAG: [1 line]
 ```
+
+MEDICATION RECONCILIATION (MANDATORY — before generating idealRx):
+For every drug the patient is currently taking, explicitly state one of:
+- CONTINUE — reason
+- MODIFY (dose/frequency change) — reason
+- STOP — reason
+Never silently drop or add a drug. If a current drug does not appear in idealRx, the reconciliation step must explain why it was stopped or replaced. If no current medications are mentioned in the summary, note: 'No current medications documented — reconciliation skipped.'
 
 ### Prescription
 ```
