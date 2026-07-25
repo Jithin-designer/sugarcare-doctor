@@ -1148,6 +1148,25 @@ function getCurrentMedsText() {
   return (document.getElementById('pasteText')?.value || '').trim();
 }
 
+// Known lab/investigation names — extracted "medications" matching these are discarded.
+const LAB_TEST_NAMES = [
+  'hba1c', 'fbs', 'ppbs', 'rbs', 'hdl', 'ldl', 'vldl', 'triglyceride', 'triglycerides',
+  'cholesterol', 'creatinine', 'egfr', 'urea', 'sodium', 'potassium', 'tsh', 'ft4', 'ft3',
+  'alt', 'ast', 'sgot', 'sgpt', 'alp', 'bilirubin', 'albumin', 'acr', 'urine acr',
+  'hemoglobin', 'haemoglobin', 'hb', 'wbc', 'platelet', 'esr', 'crp', 'vitamin d', 'vitamin b12',
+  'b12', 'uric acid', 'psa', 'lft', 'rft', 'lipid profile', 'cbc', 'fbc'
+];
+function isLabTestName(name) {
+  const n = (name || '').toLowerCase().trim();
+  if (!n) return false;
+  return LAB_TEST_NAMES.some(t => n === t || n.startsWith(t + ' ') || n.startsWith(t + ':'));
+}
+
+// Dose/frequency tokens used to recognise a medication mention inside prose.
+const DOSE_TOKEN_RE = /\b\d+(\.\d+)?\s*(mg|mcg|µg|g|ml|iu|units?|u)\b/i;
+const FREQ_TOKEN_RE = /\b(\d-\d-\d|od|bd|tds|qds|hs|sos|once daily|twice daily|three times daily|four times daily|TID|BID|QID|q\.?d\.?|b\.?i\.?d\.?|t\.?i\.?d\.?)\b/i;
+const MEDS_LEADIN_RE = /(current\s+medications?|medications?\s+prescribed|currently\s+on|current\s+treatment)\s*[:\-]?\s*/i;
+
 // Pull candidate medication lines out of free text (or the one-per-line manual field).
 function extractCurrentMeds(text) {
   if (!text) return [];
@@ -1166,16 +1185,45 @@ function extractCurrentMeds(text) {
       medLines.push(l);
     }
   }
-  // Fallback: no meds section found → treat any line carrying a dose token as a med.
+  // Prose fallback: a lead-in phrase ("current medications", "currently on", ...) inside a
+  // paragraph, followed by one or more drug mentions carrying a dose or frequency token.
   if (!medLines.length) {
-    medLines = lines.filter(l => /\b\d+(\.\d+)?\s*(mg|mcg|µg|g|ml|iu|units?|u)\b/i.test(l));
+    const leadinMatch = text.match(MEDS_LEADIN_RE);
+    if (leadinMatch) {
+      const after = text.slice(leadinMatch.index + leadinMatch[0].length);
+      // Stop the prose capture at sentence end or the next unrelated section cue.
+      const stopProseRe = /\.\s+(?=[A-Z])|(?:\n\s*\n)|\b(labs?|investigation|history|complaint|exam|diagnos|plan|vitals?|allerg|lifestyle|diet|advice|follow|next|assessment|summary|impression)\b/i;
+      const stopIdx = after.search(stopProseRe);
+      let segment = (stopIdx === -1 ? after : after.slice(0, stopIdx)).trim();
+      // Strip narrative filler before the actual drug list, e.g. "prescribed on 29 June
+      // 2026 included " — cut everything up to "included"/"included:"/"as follows", or a
+      // trailing date, so the first drug name (not a date) becomes parseMedEntry's anchor.
+      const filler = segment.match(/^.*?\b(included|includes?|as follows|comprised of|comprising)\b\s*[:\-]?\s*/i);
+      if (filler) segment = segment.slice(filler[0].length).trim();
+      else segment = segment.replace(/^(on\s+)?\d{1,2}\s+\w+\s+\d{4}\s*/i, '').trim();
+      if (segment) {
+        // Split on commas/semicolons/"and" — each piece is one med mention.
+        segment.split(/[;,]|\band\b/i).forEach(piece => {
+          let p = piece.trim();
+          if (!p) return;
+          // Drop a leading connector word left over from the split (e.g. "at 4 units...").
+          p = p.replace(/^(at|then|also|plus)\s+/i, '').trim();
+          if (p && (DOSE_TOKEN_RE.test(p) || FREQ_TOKEN_RE.test(p))) medLines.push(p);
+        });
+      }
+    }
+  }
+  // Fallback: no meds section or lead-in found → treat any line carrying a dose or
+  // frequency token as a med (covers prose split across multiple lines).
+  if (!medLines.length) {
+    medLines = lines.filter(l => DOSE_TOKEN_RE.test(l) || FREQ_TOKEN_RE.test(l));
   }
   const entries = [];
   medLines.forEach(l => {
     const raw = l.replace(/^[\s*•\-–—\d.\)]+/, '').trim(); // strip bullets / list numbering
     if (raw) entries.push(parseMedEntry(raw));
   });
-  return entries.filter(e => e.name);
+  return entries.filter(e => e.name && !isLabTestName(e.name));
 }
 
 // Split one entry into a display name + dose/frequency remainder.
@@ -1189,11 +1237,48 @@ function parseMedEntry(raw) {
   return { name, dose, raw };
 }
 
+// Common India brand names → generic, so audit matching works regardless of which
+// name (brand or generic) the doctor/DM Pro summary used.
+const BRAND_TO_GENERIC = {
+  'actrapid': 'human soluble insulin',
+  'mixtard': 'premixed insulin',
+  'basalog': 'insulin glargine',
+  'glaritus': 'insulin glargine',
+  'lantus': 'insulin glargine',
+  'novorapid': 'insulin aspart',
+  'humalog': 'insulin lispro',
+  'tresiba': 'insulin degludec',
+  'toujeo': 'insulin glargine',
+  'glycomet': 'metformin',
+  'glucophage': 'metformin',
+  'januvia': 'sitagliptin',
+  'galvus': 'vildagliptin',
+  'trajenta': 'linagliptin',
+  'jardiance': 'empagliflozin',
+  'forxiga': 'dapagliflozin',
+  'invokana': 'canagliflozin',
+  'amaryl': 'glimepiride',
+  'glynase': 'glipizide',
+  'atorva': 'atorvastatin',
+  'rozavel': 'rosuvastatin',
+  'telma': 'telmisartan',
+  'olsar': 'olmesartan',
+  'defo': 'dapagliflozin',
+  'vildacraft': 'vildagliptin',
+  'kblim': 'glimepiride',
+  'istavel': 'sitagliptin'
+};
+
 // Reduce a drug name to comparable generic key(s). FDCs → one key per component.
 function normDrug(name) {
   if (!name) return [];
   let s = name.toLowerCase();
   s = s.replace(/\([^)]*\)/g, ' ');
+  // Brand → generic, matched as a whole word so e.g. "atorva" doesn't clip "atorvastatin".
+  for (const brand in BRAND_TO_GENERIC) {
+    const re = new RegExp('\\b' + brand + '\\b', 'g');
+    if (re.test(s)) s = s.replace(re, BRAND_TO_GENERIC[brand]);
+  }
   s = s.replace(/\b(tab|tablet|cap|capsule|inj|injection|syp|syrup|susp|sr|xr|er|cr|od|bd|tds|qds|hs|sos|po|oral)\b/g, ' ');
   s = s.replace(/\b(hydrochloride|hcl|sodium|potassium|calcium|maleate|succinate|fumarate|mesylate|besylate|tartrate|sulfate|sulphate|dihydrate|monohydrate)\b/g, ' ');
   s = s.replace(/[^a-z+/&\s-]/g, ' '); // drop digits, units, punctuation
