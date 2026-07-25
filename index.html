@@ -1455,8 +1455,8 @@ async function downloadWorksheetPDF(targetId, patientName) {
   if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF...'; }
 
   try {
-    const canvas = await html2canvas(docEl, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-    const imgData = canvas.toDataURL('image/png');
+    const canvas = await html2canvas(docEl, { scale: 1, useCORS: true, backgroundColor: '#ffffff' });
+    const imgData = canvas.toDataURL('image/jpeg', 0.7);
 
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
@@ -1467,12 +1467,12 @@ async function downloadWorksheetPDF(targetId, patientName) {
 
     let heightLeft = imgHeight;
     let position = 0;
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
 
